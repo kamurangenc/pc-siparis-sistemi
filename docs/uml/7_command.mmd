@@ -1,0 +1,20 @@
+classDiagram
+    class IArac {
+        <<abstract>>
+        +ad: str
+        +girdi_semasi: dict
+        +tanim() AracTanimi
+        +calistir(girdi)* str
+    }
+    class AracYurutucu {
+        -_araclar: dict~str, IArac~
+        +tanimlar() list
+        +yurut(cagri) AracSonucu
+    }
+    IArac <|.. KatalogListeleAraci
+    IArac <|.. FiyatHesaplaAraci
+    IArac <|.. OneriSunAraci
+    AracYurutucu o--> "*" IArac
+    KatalogListeleAraci --> BilgisayarFabrikasi : receiver
+    FiyatHesaplaAraci --> DonanimKatalogu : receiver
+    DonanimOneriAsistani --> AracYurutucu

@@ -1,0 +1,21 @@
+classDiagram
+    class IBilgisayar {
+        <<abstract>>
+        +aciklama()* str
+        +maliyet()* float
+        +parca_listesi()* list
+    }
+    class DonanimDecorator {
+        <<abstract>>
+        -_bilgisayar: IBilgisayar
+        +aciklama() str
+        +maliyet() float
+        +parca_listesi() list
+    }
+    IBilgisayar <|.. OfisKasasi
+    IBilgisayar <|.. OyunKasasi
+    IBilgisayar <|.. DonanimDecorator
+    DonanimDecorator o--> IBilgisayar : sarmalar
+    DonanimDecorator <|-- RamYukseltmeDecorator
+    DonanimDecorator <|-- SiviSogutmaDecorator
+    DonanimDecorator <|-- EkSsdDecorator

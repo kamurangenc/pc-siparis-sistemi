@@ -1,0 +1,20 @@
+classDiagram
+    class IDilModeli {
+        <<abstract>>
+        +yanit_uret(sistem, konusma, araclar)* ModelYaniti
+    }
+    class ClaudeAdapter {
+        -_istemci: Anthropic
+        +yanit_uret(...) ModelYaniti
+        -_mesajlara_cevir(konusma)
+        -_araca_cevir(arac)
+        -_yanittan_cevir(yanit)
+    }
+    class Anthropic {
+        <<Adaptee>>
+        +beta.messages.create(...)
+    }
+    IDilModeli <|.. ClaudeAdapter
+    IDilModeli <|.. CevrimdisiDilModeli
+    ClaudeAdapter o--> Anthropic : uyarlar
+    DonanimOneriAsistani o--> IDilModeli

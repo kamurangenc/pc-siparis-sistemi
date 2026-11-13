@@ -1,0 +1,21 @@
+sequenceDiagram
+    participant C as İstemci (main)
+    participant F as StandartSistemFabrikasi
+    participant S as SiparisIsleyici
+    participant O as IOdemeStratejisi
+    participant T as SiparisTakipMerkezi
+    participant M as MusteriBildirimPaneli
+    participant TS as TeknikServisPaneli
+    C->>F: siparis_icin_hazirla("oyun")
+    F-->>C: OyunKasasi
+    C->>C: SiviSogutmaDecorator(RamYukseltmeDecorator(pc))
+    C->>S: siparisi_tamamla(pc)
+    S->>O: ode(pc.maliyet())
+    O-->>S: OdemeSonucu
+    S->>T: durum_guncelle(no, ODEME_ALINDI)
+    T->>M: guncelle(...)
+    T->>TS: guncelle(...) (yok sayar)
+    C->>S: montaj_surecini_yurut(siparis)
+    S->>T: durum_guncelle(MONTAJDA / TESTTE / KARGODA)
+    T->>M: guncelle(...)
+    T->>TS: guncelle(...)

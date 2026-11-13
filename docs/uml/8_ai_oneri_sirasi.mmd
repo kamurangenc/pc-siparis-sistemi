@@ -1,0 +1,20 @@
+sequenceDiagram
+    participant K as KonsolUygulamasi
+    participant A as DonanimOneriAsistani
+    participant G as GirdiDenetcisi / CiktiDenetcisi
+    participant M as IDilModeli (ClaudeAdapter)
+    participant Y as AracYurutucu
+    participant F as Fabrika + Katalog
+    K->>A: oner(istek, butce)
+    A->>G: girdi denetimi
+    loop en fazla MAKS_ADIM
+        A->>M: yanit_uret(sistem, konusma, araclar)
+        M-->>A: ModelYaniti (araç çağrıları)
+        A->>Y: yurut(cagri)
+        Y->>F: bilgisayar_olustur / ekle
+        F-->>Y: IBilgisayar
+        Y-->>A: AracSonucu
+        A->>G: oneri_sun ise çıktı denetimi
+    end
+    A-->>K: OneriSonucu(IBilgisayar, gerekçe)
+    K->>K: _siparis_ver (Strategy + Observer)

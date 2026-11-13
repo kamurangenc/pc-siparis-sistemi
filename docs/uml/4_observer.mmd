@@ -1,0 +1,15 @@
+classDiagram
+    class SiparisTakipMerkezi {
+        -_gozlemciler: list~ISiparisGozlemcisi~
+        +abone_ekle(g)
+        +abone_cikar(g)
+        +durum_guncelle(no, durum, detay)
+        -_bildir(no, durum, detay)
+    }
+    class ISiparisGozlemcisi {
+        <<abstract>>
+        +guncelle(no, durum, detay)*
+    }
+    SiparisTakipMerkezi o--> "*" ISiparisGozlemcisi
+    ISiparisGozlemcisi <|.. MusteriBildirimPaneli
+    ISiparisGozlemcisi <|.. TeknikServisPaneli

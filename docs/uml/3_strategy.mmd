@@ -1,0 +1,14 @@
+classDiagram
+    class SiparisIsleyici {
+        -_odeme_stratejisi: IOdemeStratejisi
+        +odeme_stratejisi_degistir(strateji)
+        +siparisi_tamamla(bilgisayar) Siparis
+    }
+    class IOdemeStratejisi {
+        <<abstract>>
+        +odeme_tutari_hesapla(fiyat)* float
+        +ode(fiyat)* OdemeSonucu
+    }
+    SiparisIsleyici o--> IOdemeStratejisi
+    IOdemeStratejisi <|.. HavaleOdemeStratejisi
+    IOdemeStratejisi <|.. KrediKartiOdemeStratejisi

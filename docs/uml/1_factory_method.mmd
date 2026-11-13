@@ -1,0 +1,32 @@
+classDiagram
+    class BilgisayarFabrikasi {
+        <<abstract>>
+        +son_seri_no: str
+        +bilgisayar_olustur(secim)* IBilgisayar
+        +secenekler()* dict
+        +siparis_icin_hazirla(secim) IBilgisayar
+        -_kalite_kontrol(bilgisayar)
+    }
+    class StandartSistemFabrikasi {
+        -_modeller: dict
+        +bilgisayar_olustur(secim) IBilgisayar
+        +kasa_kaydet(kod, sinif)
+    }
+    class HazirPaketFabrikasi {
+        -_paketler: dict~str, PaketTarifi~
+        +bilgisayar_olustur(secim) IBilgisayar
+        +paket_kaydet(kod, tarif)
+    }
+    class IBilgisayar {
+        <<abstract>>
+        +aciklama()* str
+        +maliyet()* float
+        +parca_listesi()* list
+    }
+    BilgisayarFabrikasi <|-- StandartSistemFabrikasi
+    BilgisayarFabrikasi <|-- HazirPaketFabrikasi
+    HazirPaketFabrikasi o--> StandartSistemFabrikasi : temel kasa için
+    IBilgisayar <|.. OfisKasasi
+    IBilgisayar <|.. OyunKasasi
+    BilgisayarFabrikasi ..> IBilgisayar : üretir
+    KonsolUygulamasi ..> BilgisayarFabrikasi : kullanır
