@@ -9,6 +9,9 @@ from contextlib import redirect_stdout
 from pc_siparis import (
     BilgisayarFabrikasi,
     DonanimDecorator,
+    DonanimKatalogu,
+    HazirPaketFabrikasi,
+    UretimHatasi,
     EkSsdDecorator,
     HavaleOdemeStratejisi,
     IBilgisayar,
@@ -54,6 +57,33 @@ class FactoryMethodTestleri(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.fabrika.bilgisayar_olustur("sunucu")
 
+    def test_ortak_surec_seri_no_verir(self):
+        self.fabrika.siparis_icin_hazirla("ofis")
+        self.fabrika.siparis_icin_hazirla("oyun")
+        self.assertEqual(self.fabrika.son_seri_no, "STD-0002")
+
+    def test_kalite_kontrol_hatali_urunu_reddeder(self):
+        class FiyatsizKasa(OfisKasasi):
+            def maliyet(self):
+                return 0
+
+        self.fabrika.kasa_kaydet("bozuk", FiyatsizKasa)
+        with self.assertRaises(UretimHatasi):
+            self.fabrika.siparis_icin_hazirla("bozuk")
+
+    def test_hazir_paket_fabrikasi_dekore_edilmis_urun_uretir(self):
+        paket = HazirPaketFabrikasi().siparis_icin_hazirla("yayinci")
+        self.assertIsInstance(paket, IBilgisayar)
+        self.assertEqual(paket.maliyet(), 40_000 + 2_500 + 4_000)
+        self.assertIn("Sıvı Soğutma", paket.aciklama())
+
+    def test_istemci_her_fabrikayla_ayni_akisi_kullanir(self):
+        # Polimorfizm: istemci yalnızca soyut Creator'ı bilir.
+        for fabrika in (StandartSistemFabrikasi(), HazirPaketFabrikasi()):
+            with self.subTest(fabrika=type(fabrika).__name__):
+                for kod in fabrika.secenekler():
+                    self.assertIsInstance(fabrika.siparis_icin_hazirla(kod), IBilgisayar)
+
     def test_yeni_model_mevcut_kod_degismeden_eklenir(self):
         class IsIstasyonu(OfisKasasi):
             def aciklama(self):
@@ -83,6 +113,17 @@ class DecoratorTestleri(unittest.TestCase):
 
     def test_dekorator_soyut_siniftir(self):
         self.assertTrue(issubclass(DonanimDecorator, IBilgisayar))
+
+
+class KatalogTestleri(unittest.TestCase):
+    def test_katalog_kod_ile_dekorator_ekler(self):
+        katalog = DonanimKatalogu()
+        pc = katalog.ekle(katalog.ekle(OfisKasasi(), "ram"), "ek_ssd")
+        self.assertEqual(pc.maliyet(), 15_000 + 2_500 + 3_000)
+
+    def test_bilinmeyen_donanim_hata_verir(self):
+        with self.assertRaises(ValueError):
+            DonanimKatalogu().ekle(OfisKasasi(), "rgb_fan")
 
 
 class StrategyTestleri(unittest.TestCase):
