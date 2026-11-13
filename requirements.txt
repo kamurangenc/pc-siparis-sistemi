@@ -1,0 +1,3 @@
+# Yalnızca AI asistanını gerçek Claude modeliyle kullanmak için gerekir.
+# Kurulmazsa uygulama çevrimdışı kural tabanlı modelle çalışır.
+anthropic>=2.8
