@@ -1,6 +1,6 @@
-"""Demo: dört kalıbın birlikte çalıştığı uçtan uca sipariş senaryosu.
+"""Komut dosyası demo: dört kalıbın birlikte çalıştığı uçtan uca sipariş senaryosu.
 
-Çalıştırma:  python main.py
+Çalıştırma:  python demo.py
 """
 from pc_siparis import (
     BilgisayarFabrikasi,
@@ -39,6 +39,7 @@ def main() -> None:
 
     print("=== Senaryo 1: Oyun kasası + RAM + sıvı soğutma, havale ile ===")
     pc: IBilgisayar = fabrika.siparis_icin_hazirla("oyun")
+    print(f"[Fabrika] {pc.aciklama()} üretildi (seri no: {fabrika.son_seri_no})")
     # Decorator: donanımlar çalışma anında sarmalanır
     pc = SiviSogutmaDecorator(RamYukseltmeDecorator(pc))
 
