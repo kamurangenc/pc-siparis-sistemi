@@ -20,6 +20,7 @@ ilgili panellere bildiren ve müşteriye AI destekli donanım önerisi sunan bir
 
 Kodda her rol, sınıfın üstünde `# [Kalıp: Rol]` yorumuyla işaretlidir.
 Ayrıntılı rol tabloları, UML sınıf ve sıralama diyagramları: [docs/KALIP_HARITASI.md](docs/KALIP_HARITASI.md).
+Tasarım raporu (Word): [docs/Tasarim_Raporu.docx](docs/Tasarim_Raporu.docx) · UML görselleri: [docs/uml/](docs/uml/).
 
 ## Proje Yapısı
 
