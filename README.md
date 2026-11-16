@@ -22,6 +22,8 @@ Kodda her rol, sınıfın üstünde `# [Kalıp: Rol]` yorumuyla işaretlidir.
 Ayrıntılı rol tabloları, UML sınıf ve sıralama diyagramları: [docs/KALIP_HARITASI.md](docs/KALIP_HARITASI.md).
 Tasarım raporu (Word): [docs/Tasarim_Raporu.docx](docs/Tasarim_Raporu.docx) · UML görselleri: [docs/uml/](docs/uml/).
 
+**Dokümanlar:** [Kurulum ve çalıştırma](docs/KURULUM.md) · [Test dokümanı](docs/TEST.md)
+
 ## Proje Yapısı
 
 ```
