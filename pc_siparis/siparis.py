@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from .odeme import IOdemeStratejisi, OdemeSonucu
 from .takip import SiparisDurumu, SiparisTakipMerkezi
 from .urunler import IBilgisayar
+from .para import tl
 
 
 @dataclass(frozen=True)
@@ -48,7 +49,7 @@ class SiparisIsleyici:
             odeme=odeme,
         )
         self._takip_merkezi.durum_guncelle(
-            siparis_no, SiparisDurumu.ODEME_ALINDI, f"{odeme.yontem}: {odeme.odenen_tutar:,.2f} TL"
+            siparis_no, SiparisDurumu.ODEME_ALINDI, f"{odeme.yontem}: {tl(odeme.odenen_tutar, 2)}"
         )
         return siparis
 

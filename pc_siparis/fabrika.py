@@ -16,6 +16,7 @@ from dataclasses import dataclass
 
 from .dekoratorler import DonanimDecorator, EkSsdDecorator, RamYukseltmeDecorator, SiviSogutmaDecorator
 from .urunler import IBilgisayar, OfisKasasi, OyunKasasi
+from .para import tl
 
 
 class UretimHatasi(Exception):
@@ -80,7 +81,7 @@ class StandartSistemFabrikasi(BilgisayarFabrikasi):
         self._modeller[kod.lower()] = kasa_sinifi
 
     def secenekler(self) -> dict[str, str]:
-        return {kod: f"{sinif().aciklama()} ({sinif().maliyet():,.0f} TL)" for kod, sinif in self._modeller.items()}
+        return {kod: f"{sinif().aciklama()} ({tl(sinif().maliyet(), 0)})" for kod, sinif in self._modeller.items()}
 
     def bilgisayar_olustur(self, secim: str) -> IBilgisayar:
         try:
@@ -124,7 +125,11 @@ class HazirPaketFabrikasi(BilgisayarFabrikasi):
         self._paketler[kod.lower()] = tarif
 
     def secenekler(self) -> dict[str, str]:
-        return {kod: f"{t.aciklama}: {self.bilgisayar_olustur(kod).aciklama()}" for kod, t in self._paketler.items()}
+        secenekler = {}
+        for kod, tarif in self._paketler.items():
+            pc = self.bilgisayar_olustur(kod)
+            secenekler[kod] = f"{tarif.aciklama} ({tl(pc.maliyet(), 0)}): {pc.aciklama()}"
+        return secenekler
 
     def bilgisayar_olustur(self, secim: str) -> IBilgisayar:
         try:

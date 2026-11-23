@@ -20,6 +20,7 @@ from typing import Callable
 from .ai import DilModeliHatasi, DonanimOneriAsistani, IDilModeli, OneriHatasi, varsayilan_dil_modeli
 from .fabrika import BilgisayarFabrikasi, HazirPaketFabrikasi, StandartSistemFabrikasi
 from .katalog import DonanimKatalogu
+from .para import tl
 from .odeme import HavaleOdemeStratejisi, IOdemeStratejisi, KrediKartiOdemeStratejisi
 from .siparis import SiparisIsleyici
 from .takip import ISiparisGozlemcisi, SiparisDurumu, SiparisTakipMerkezi
@@ -33,10 +34,6 @@ RENK_PASIF = "#B0B7C3"
 YAZI = ("Segoe UI", 10)
 YAZI_KALIN = ("Segoe UI", 10, "bold")
 YAZI_BASLIK = ("Segoe UI", 15, "bold")
-
-
-def _tl(tutar: float) -> str:
-    return f"{tutar:,.2f} TL".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
 # --------------------------------------------------------------------------- Observer
@@ -95,15 +92,43 @@ class SiparisDurumGostergesi(ISiparisGozlemcisi):
         self._etiketler[durum].configure(bg=RENK_BASARI)
 
 
+# [Observer: ConcreteObserver]
+class SiraliGosterimGozlemcisi(ISiparisGozlemcisi):
+    """Takip merkezine abone olan tek gözlemci; bildirimleri pencere panellerine
+    aşama aşama, belirli aralıklarla iletir. Böylece montaj → test → kargo akışı
+    ekranda adım adım izlenir. Takip merkezi ve sipariş akışı bundan habersizdir.
+    """
+
+    def __init__(self, kok: tk.Misc, paneller: list[ISiparisGozlemcisi], aralik_ms: int) -> None:
+        self._kok = kok
+        self._paneller = paneller
+        self._aralik_ms = aralik_ms
+        self._sonraki_ms = 0.0
+
+    def guncelle(self, siparis_no: int, durum: SiparisDurumu, detay: str) -> None:
+        def ilet() -> None:
+            for panel in self._paneller:
+                panel.guncelle(siparis_no, durum, detay)
+
+        if self._aralik_ms <= 0:
+            return ilet()
+        simdi = time.monotonic() * 1000
+        baslangic = max(simdi, self._sonraki_ms)
+        self._sonraki_ms = baslangic + self._aralik_ms
+        self._kok.after(int(baslangic - simdi), ilet)
+
+
 # --------------------------------------------------------------------------- Uygulama
 
 class PencereUygulamasi:
     TAKSITLER = ("1", "3", "6", "9", "12")
 
-    def __init__(self, kok: tk.Tk, dil_modeli: IDilModeli | None = None, senkron: bool = False) -> None:
+    def __init__(self, kok: tk.Tk, dil_modeli: IDilModeli | None = None, senkron: bool = False,
+                 asama_araligi_ms: int = 800) -> None:
         self.kok = kok
         self._dil_modeli = dil_modeli
         self._senkron = senkron  # testlerde AI çağrısı iş parçacığı olmadan yürütülür
+        self._asama_araligi_ms = asama_araligi_ms  # 0: aşamalar beklemeden gösterilir (testler)
         self._katalog = DonanimKatalogu()
         self._fabrikalar: dict[str, BilgisayarFabrikasi] = {}
         self._fabrikalar["standart"] = StandartSistemFabrikasi()
@@ -124,8 +149,9 @@ class PencereUygulamasi:
         self.musteri_paneli = PencereMusteriPaneli(self._musteri_metni, lambda: self.ad_var.get().strip() or "Müşteri")
         self.servis_paneli = PencereTeknikServisPaneli(self._servis_metni)
         self.durum_gostergesi = SiparisDurumGostergesi(self._asama_etiketleri)
-        for gozlemci in (self.musteri_paneli, self.servis_paneli, self.durum_gostergesi):
-            self._takip.abone_ekle(gozlemci)
+        self._takip.abone_ekle(SiraliGosterimGozlemcisi(
+            kok, [self.durum_gostergesi, self.musteri_paneli, self.servis_paneli], self._asama_araligi_ms
+        ))
         self._odeme_onizle()
 
     # ----------------------------------------------------------- kurulum
@@ -147,7 +173,9 @@ class PencereUygulamasi:
         tk.Label(ust, text="Modüler Bilgisayar Toplama ve Sipariş Sistemi", font=YAZI_BASLIK,
                  fg="white", bg=RENK_VURGU).pack(side="left", padx=16, pady=10)
         self.ad_var = tk.StringVar(value="")
-        tk.Entry(ust, textvariable=self.ad_var, font=YAZI, width=22).pack(side="right", padx=(4, 16))
+        self._ad_girdisi = tk.Entry(ust, textvariable=self.ad_var, font=YAZI, width=22)
+        self._ad_girdisi.pack(side="right", padx=(4, 16))
+        self.ad_var.trace_add("write", lambda *_: self._ad_girdisi.configure(bg="white"))
         tk.Label(ust, text="Müşteri adı:", font=YAZI, fg="white", bg=RENK_VURGU).pack(side="right")
 
         govde = ttk.Frame(self.kok, padding=12)
@@ -167,7 +195,7 @@ class PencereUygulamasi:
 
     def _urun_sutunu(self, ebeveyn) -> ttk.Frame:
         cerceve = ttk.LabelFrame(ebeveyn, text="1. Ürün Seçimi", padding=8)
-        defter = ttk.Notebook(cerceve)
+        defter = self._defter = ttk.Notebook(cerceve)
         defter.pack(fill="both", expand=True)
         self._secim_vars: dict[str, tk.StringVar] = {}
         for tur, baslik in (("standart", "Temel Kasa"), ("paket", "Hazır Paket")):
@@ -180,7 +208,7 @@ class PencereUygulamasi:
         sekme = ttk.Frame(ebeveyn, padding=10)
         fabrika = self._fabrikalar[tur]
         secenekler = fabrika.secenekler()
-        var = tk.StringVar(value=next(iter(secenekler)))
+        var = tk.StringVar(value="")  # başta hiçbir seçenek işaretli değil
         self._secim_vars[tur] = var
         for kod, aciklama in secenekler.items():
             ttk.Radiobutton(sekme, text=aciklama, value=kod, variable=var).pack(anchor="w", pady=4)
@@ -224,7 +252,7 @@ class PencereUygulamasi:
         self.fiyat_var = tk.StringVar(value="Liste fiyatı: —")
         ttk.Label(sistem, textvariable=self.fiyat_var, style="Fiyat.TLabel").pack(anchor="w", pady=(0, 6))
         for bilgi in self._katalog.tum_bilgiler():
-            ttk.Button(sistem, text=f"+ {bilgi.aciklama}  ({_tl(bilgi.fiyat)})",
+            ttk.Button(sistem, text=f"+ {bilgi.aciklama}  ({tl(bilgi.fiyat)})",
                        command=lambda k=bilgi.kod: self.donanim_ekle(k)).pack(fill="x", pady=2)
         ttk.Button(sistem, text="Ek donanımları kaldır", command=self.donanimlari_sifirla).pack(fill="x", pady=(6, 0))
 
@@ -275,10 +303,18 @@ class PencereUygulamasi:
     # ----------------------------------------------------------- işlemler
 
     def kaynak_sec(self, tur: str, kod: str) -> None:
+        if not kod:
+            return self._durum("Önce listeden bir seçenek işaretleyin.", hata=True)
         fabrika = self._fabrikalar[tur]
         bilgisayar = fabrika.siparis_icin_hazirla(kod)
         self._sistemi_ayarla(bilgisayar, temel=True)
+        self._secimleri_isaretle(tur, kod)
         self._durum(f"Üretildi: {bilgisayar.aciklama()} (seri no: {fabrika.son_seri_no})")
+
+    def _secimleri_isaretle(self, tur: str | None = None, kod: str = "") -> None:
+        """Yalnızca ekrandaki sistemin geldiği seçenek işaretli kalır (AI önerisinde hiçbiri)."""
+        for t, var in self._secim_vars.items():
+            var.set(kod if t == tur else "")
 
     def donanim_ekle(self, kod: str) -> None:
         if self._bilgisayar is None:
@@ -307,18 +343,25 @@ class PencereUygulamasi:
     def siparisi_tamamla(self) -> None:
         if self._bilgisayar is None:
             return self._durum("Sipariş için önce bir sistem seçin.", hata=True)
+        if not self.ad_var.get().strip():
+            self._ad_girdisi.configure(bg="#FDECEA")
+            self._ad_girdisi.focus_set()
+            return self._durum("Sipariş için sağ üstteki alana müşteri adını yazın.", hata=True)
         isleyici = SiparisIsleyici(self.odeme_stratejisi(), self._takip)
         siparis = isleyici.siparisi_tamamla(self._bilgisayar)
         isleyici.montaj_surecini_yurut(siparis)
         self.siparisler.append(siparis)
         self.siparis_sayisi_var.set(f"Verilen sipariş: {len(self.siparisler)}")
         o = siparis.odeme
-        self._durum(f"Sipariş #{siparis.siparis_no} tamamlandı — {o.yontem}: {_tl(o.odenen_tutar)} ({o.aciklama})")
+        self._durum(f"Sipariş #{siparis.siparis_no} alındı — {o.yontem}: {tl(o.odenen_tutar)} ({o.aciklama}). "
+                    "Aşamalar takip panelinde.")
 
     def ai_oneri_al(self, istek: str, butce: float | None) -> None:
         if self._dil_modeli is None:
             self._dil_modeli, aciklama = varsayilan_dil_modeli()
             self.model_var.set(aciklama)
+        elif self.model_var.get() == "Model, ilk öneride seçilir.":
+            self.model_var.set(f"Model: {type(self._dil_modeli).__name__}")
         asistan = DonanimOneriAsistani(self._dil_modeli, self._fabrikalar["standart"], self._katalog)
         self._ai_dugmesi.configure(state="disabled")
         self.gerekce_var.set("")
@@ -364,6 +407,7 @@ class PencereUygulamasi:
             self._durum(f"Öneri alınamadı: {veri}", hata=True)
             return
         self._sistemi_ayarla(veri.bilgisayar, temel=True)
+        self._secimleri_isaretle()
         self.gerekce_var.set(f"Gerekçe: {veri.gerekce}")
         self._durum(f"Asistan önerisi hazır ({veri.adim_sayisi} adım, {sure:.1f} sn). İsterseniz donanım ekleyip sipariş verin.")
 
@@ -375,7 +419,7 @@ class PencereUygulamasi:
         self._parca_listesi.delete(0, "end")
         for parca in bilgisayar.parca_listesi():
             self._parca_listesi.insert("end", f"  {parca}")
-        self.fiyat_var.set(f"Liste fiyatı: {_tl(bilgisayar.maliyet())}")
+        self.fiyat_var.set(f"Liste fiyatı: {tl(bilgisayar.maliyet())}")
         self._odeme_onizle()
 
     def _odeme_onizle(self) -> None:
@@ -384,7 +428,7 @@ class PencereUygulamasi:
             self.odenecek_var.set("Ödenecek tutar: —")
             return
         tutar = self.odeme_stratejisi().odeme_tutari_hesapla(self._bilgisayar.maliyet())
-        self.odenecek_var.set(f"Ödenecek tutar: {_tl(tutar)}")
+        self.odenecek_var.set(f"Ödenecek tutar: {tl(tutar)}")
 
     def _durum(self, mesaj: str, hata: bool = False) -> None:
         self.durum_var.set(mesaj)

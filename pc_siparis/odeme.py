@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from .para import tl
 
 
 @dataclass(frozen=True)
@@ -79,7 +80,7 @@ class KrediKartiOdemeStratejisi(IOdemeStratejisi):
             detay = "Tek çekim."
         else:
             aylik = round(tutar / self._taksit_sayisi, 2)
-            detay = f"{self._taksit_sayisi} taksit x {aylik:,.2f} TL."
+            detay = f"{self._taksit_sayisi} taksit x {tl(aylik, 2)}."
         return OdemeSonucu(
             yontem="Kredi Kartı",
             liste_fiyati=liste_fiyati,

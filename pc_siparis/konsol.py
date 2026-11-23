@@ -18,6 +18,7 @@ from .odeme import HavaleOdemeStratejisi, IOdemeStratejisi, KrediKartiOdemeStrat
 from .siparis import SiparisIsleyici
 from .takip import MusteriBildirimPaneli, SiparisTakipMerkezi, TeknikServisPaneli
 from .urunler import IBilgisayar
+from .para import tl
 
 
 class _Cikis(Exception):
@@ -84,11 +85,11 @@ class KonsolUygulamasi:
         return bilgisayar
 
     def _donanim_ekle(self, bilgisayar: IBilgisayar) -> IBilgisayar:
-        secenekler = {str(i): f"{d.aciklama} (+{d.fiyat:,.0f} TL)" for i, d in enumerate(self._katalog.tum_bilgiler(), 1)}
+        secenekler = {str(i): f"{d.aciklama} (+{tl(d.fiyat, 0)})" for i, d in enumerate(self._katalog.tum_bilgiler(), 1)}
         kodlar = {str(i): kod for i, kod in enumerate(self._katalog.kodlar(), 1)}
         secenekler["0"] = "Bitti, siparişe geç"
         while True:
-            self._cikti(f"\nMevcut sistem: {bilgisayar.aciklama()} — {bilgisayar.maliyet():,.2f} TL")
+            self._cikti(f"\nMevcut sistem: {bilgisayar.aciklama()} — {tl(bilgisayar.maliyet(), 2)}")
             secim = self._secim_yap("Ek donanım eklemek ister misiniz?", secenekler)
             if secim == "0":
                 return bilgisayar
@@ -137,7 +138,7 @@ class KonsolUygulamasi:
         isleyici = SiparisIsleyici(self._odeme_sec(), self._takip)
         siparis = isleyici.siparisi_tamamla(bilgisayar)
         o = siparis.odeme
-        self._cikti(f"Ödenen ({o.yontem}): {o.odenen_tutar:,.2f} TL — {o.aciklama}")
+        self._cikti(f"Ödenen ({o.yontem}): {tl(o.odenen_tutar, 2)} — {o.aciklama}")
         isleyici.montaj_surecini_yurut(siparis)
         self._siparisler.append(siparis)
 
@@ -147,7 +148,7 @@ class KonsolUygulamasi:
         self._cikti(f"\n{bilgisayar.aciklama()}")
         for parca in bilgisayar.parca_listesi():
             self._cikti(f"  - {parca}")
-        self._cikti(f"  Liste fiyatı: {bilgisayar.maliyet():,.2f} TL")
+        self._cikti(f"  Liste fiyatı: {tl(bilgisayar.maliyet(), 2)}")
 
     def _sor(self, soru: str) -> str:
         try:

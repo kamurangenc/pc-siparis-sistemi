@@ -16,6 +16,7 @@ from ..urunler import IBilgisayar
 from .araclar import AracYurutucu, FiyatHesaplaAraci, KatalogListeleAraci, OneriSunAraci
 from .dil_modeli import AracSonucu, IDilModeli, Konusma
 from .guardrail import CiktiDenetcisi, GirdiDenetcisi
+from ..para import tl
 
 SISTEM_TALIMATI = """\
 Sen bir bilgisayar mağazasının donanım danışmanısın. Müşterinin ihtiyacına ve bütçesine \
@@ -68,7 +69,7 @@ class DonanimOneriAsistani:
             FiyatHesaplaAraci(self._fabrika, self._katalog, butce),
             oneri_araci,
         ])
-        mesaj = istek.strip() + (f"\n\nBütçem: {butce:,.0f} TL" if butce else "\n\nBütçe belirtilmedi.")
+        mesaj = istek.strip() + (f"\n\nBütçem: {tl(butce, 0)}" if butce else "\n\nBütçe belirtilmedi.")
         konusma = Konusma(kullanici_mesaji=mesaj)
 
         for adim in range(1, self.MAKS_ADIM + 1):

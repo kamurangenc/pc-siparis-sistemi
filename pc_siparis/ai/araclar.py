@@ -21,6 +21,7 @@ from ..fabrika import BilgisayarFabrikasi
 from ..katalog import DonanimKatalogu
 from ..urunler import IBilgisayar
 from .dil_modeli import AracCagrisi, AracSonucu, AracTanimi
+from ..para import tl
 
 
 class AracHatasi(Exception):
@@ -102,7 +103,7 @@ class FiyatHesaplaAraci(IArac):
             sonuc["butce_tl"] = self._butce
             sonuc["butceye_uygun"] = pc.maliyet() <= self._butce
             if pc.maliyet() > self._butce:
-                raise AracHatasi(f"Toplam {pc.maliyet():,.0f} TL, bütçe ({self._butce:,.0f} TL) aşılıyor.")
+                raise AracHatasi(f"Toplam {tl(pc.maliyet(), 0)}, bütçe ({tl(self._butce, 0)}) aşılıyor.")
         return json.dumps(sonuc, ensure_ascii=False)
 
 

@@ -17,6 +17,7 @@ from pc_siparis import (
     StandartSistemFabrikasi,
     TeknikServisPaneli,
 )
+from pc_siparis.para import tl
 
 
 def siparis_ozeti_yazdir(siparis: Siparis) -> None:
@@ -24,8 +25,8 @@ def siparis_ozeti_yazdir(siparis: Siparis) -> None:
     for parca in siparis.parcalar:
         print(f"    - {parca}")
     o = siparis.odeme
-    print(f"  Liste fiyatı : {o.liste_fiyati:,.2f} TL")
-    print(f"  Ödenen ({o.yontem}): {o.odenen_tutar:,.2f} TL  ({o.aciklama})\n")
+    print(f"  Liste fiyatı : {tl(o.liste_fiyati, 2)}")
+    print(f"  Ödenen ({o.yontem}): {tl(o.odenen_tutar, 2)}  ({o.aciklama})\n")
 
 
 def main() -> None:

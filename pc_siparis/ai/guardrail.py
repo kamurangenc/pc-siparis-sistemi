@@ -12,6 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from ..urunler import IBilgisayar
+from ..para import tl
 
 
 @dataclass(frozen=True)
@@ -48,6 +49,6 @@ class CiktiDenetcisi:
     def denetle(self, bilgisayar: IBilgisayar, butce: float | None) -> DenetimSonucu:
         if butce is not None and bilgisayar.maliyet() > butce:
             return DenetimSonucu(
-                False, f"Önerilen sistem {bilgisayar.maliyet():,.0f} TL; bütçe {butce:,.0f} TL. Daha uygun bir kombinasyon öner."
+                False, f"Önerilen sistem {tl(bilgisayar.maliyet(), 0)}; bütçe {tl(butce, 0)}. Daha uygun bir kombinasyon öner."
             )
         return GECTI
