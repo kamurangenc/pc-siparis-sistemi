@@ -199,16 +199,131 @@ class CevrimdisiDilModeli(IDilModeli):
         return ModelYaniti(metin="", arac_cagrilari=[cagri], ham_icerik=[cagri])
 
 
+# [Adapter: Adapter]
+class GeminiAdapter(IDilModeli):
+    """IDilModeli arayüzünü Google Gen AI SDK'sına (Adaptee: google.genai.Client) uyarlar.
+
+    Asistan, araçlar ve guardrail'ler değişmeden kalır; yalnızca bu çeviri katmanı
+    eklenerek model sağlayıcısı değiştirilmiştir.
+    """
+
+    VARSAYILAN_MODEL = "gemini-3.6-flash"
+    ZAMAN_ASIMI_MS = 60_000
+
+    def __init__(self, istemci: Any | None = None, model: str | None = None) -> None:
+        import os
+
+        if istemci is None:
+            from google import genai  # isteğe bağlı bağımlılık
+            from google.genai import types
+
+            # Anahtar ortamdan okunur (GEMINI_API_KEY veya GOOGLE_API_KEY); kodda anahtar tutulmaz.
+            istemci = genai.Client(http_options=types.HttpOptions(timeout=self.ZAMAN_ASIMI_MS))
+        self._istemci = istemci  # Adaptee
+        self._model = model or os.environ.get("GEMINI_MODEL") or self.VARSAYILAN_MODEL
+
+    @property
+    def model_adi(self) -> str:
+        return self._model
+
+    def yanit_uret(self, sistem: str, konusma: Konusma, araclar: list[AracTanimi]) -> ModelYaniti:
+        from google.genai import errors, types
+
+        ayarlar = types.GenerateContentConfig(
+            system_instruction=sistem,
+            tools=[types.Tool(function_declarations=[self._araca_cevir(a) for a in araclar])] if araclar else None,
+            # Araç döngüsünü asistan yönetir; SDK'nın otomatik araç çağırması kapatılır.
+            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
+        )
+        try:
+            yanit = self._istemci.models.generate_content(
+                model=self._model, contents=self._mesajlara_cevir(konusma), config=ayarlar
+            )
+        except errors.ClientError as e:
+            if e.code == 429:
+                raise DilModeliHatasi("İstek sınırı aşıldı, biraz sonra tekrar deneyin.") from e
+            if e.code in (400, 401, 403) and "key" in str(e.message).lower():
+                raise DilModeliHatasi("Gemini API anahtarı geçersiz (GEMINI_API_KEY).") from e
+            raise DilModeliHatasi(f"Gemini API hatası ({e.code}): {e.message}") from e
+        except errors.APIError as e:
+            raise DilModeliHatasi(f"Gemini sunucu hatası ({e.code}): {e.message}") from e
+        except OSError as e:
+            raise DilModeliHatasi("Ağ bağlantısı kurulamadı.") from e
+        return self._yanittan_cevir(yanit)
+
+    # --- Çeviri katmanı ---
+
+    @staticmethod
+    def _araca_cevir(arac: AracTanimi) -> Any:
+        from google.genai import types
+
+        return types.FunctionDeclaration(
+            name=arac.ad, description=arac.aciklama, parameters_json_schema=arac.girdi_semasi
+        )
+
+    @staticmethod
+    def _mesajlara_cevir(konusma: Konusma) -> list[Any]:
+        from google.genai import types
+
+        icerikler = [types.Content(role="user", parts=[types.Part(text=konusma.kullanici_mesaji)])]
+        for model_yaniti, sonuclar in konusma.adimlar:
+            # Modelin içeriği (thought signature'lar dahil) değiştirilmeden geri gönderilir.
+            icerikler.append(model_yaniti.ham_icerik)
+            if sonuclar:
+                adlar = {c.cagri_id: c.ad for c in model_yaniti.arac_cagrilari}
+                parcalar = []
+                for s in sonuclar:
+                    parca = types.Part.from_function_response(
+                        name=adlar.get(s.cagri_id, ""),
+                        response={"error": s.icerik} if s.hata else {"result": s.icerik},
+                    )
+                    if not s.cagri_id.startswith("yerel-"):
+                        parca.function_response.id = s.cagri_id
+                    parcalar.append(parca)
+                icerikler.append(types.Content(role="user", parts=parcalar))
+        return icerikler
+
+    @staticmethod
+    def _yanittan_cevir(yanit: Any) -> ModelYaniti:
+        from google.genai import types
+
+        aday = yanit.candidates[0] if yanit.candidates else None
+        engellendi = bool(getattr(yanit, "prompt_feedback", None) and yanit.prompt_feedback.block_reason)
+        if aday is None or aday.content is None:
+            return ModelYaniti(metin="", reddedildi=True)
+        parcalar = aday.content.parts or []
+        metin = "".join(p.text for p in parcalar if p.text and not p.thought)
+        cagrilar = [
+            # Eski modeller çağrı kimliği döndürmeyebilir; o durumda yerel bir kimlik üretilir.
+            AracCagrisi(cagri_id=p.function_call.id or f"yerel-{i}", ad=p.function_call.name, girdi=dict(p.function_call.args or {}))
+            for i, p in enumerate(parcalar)
+            if p.function_call
+        ]
+        return ModelYaniti(
+            metin=metin,
+            arac_cagrilari=cagrilar,
+            reddedildi=engellendi or aday.finish_reason == types.FinishReason.SAFETY,
+            ham_icerik=aday.content,
+        )
+
+
 def varsayilan_dil_modeli() -> tuple[IDilModeli, str]:
-    """Ortama göre modeli seçer: anahtar varsa Claude, yoksa çevrimdışı model.
+    """Ortama göre modeli seçer: Gemini anahtarı → Gemini, Anthropic anahtarı → Claude,
+    hiçbiri yoksa çevrimdışı model.
 
     Konsol ve pencere arayüzü aynı seçimi kullanır; dönen metin kullanıcıya gösterilir.
     """
     import os
 
+    if os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY"):
+        try:
+            model = GeminiAdapter()
+            return model, f"Gemini modeli kullanılıyor ({model.model_adi})"
+        except ImportError:
+            return CevrimdisiDilModeli(), "google-genai paketi kurulu değil (pip install -r requirements.txt) — çevrimdışı model kullanılıyor"
     if os.environ.get("ANTHROPIC_API_KEY"):
         try:
             return ClaudeAdapter(), "Claude modeli kullanılıyor"
         except ImportError:
             return CevrimdisiDilModeli(), "anthropic paketi kurulu değil (pip install -r requirements.txt) — çevrimdışı model kullanılıyor"
-    return CevrimdisiDilModeli(), "ANTHROPIC_API_KEY tanımlı değil — çevrimdışı kural tabanlı model kullanılıyor"
+    return CevrimdisiDilModeli(), "GEMINI_API_KEY tanımlı değil — çevrimdışı kural tabanlı model kullanılıyor"

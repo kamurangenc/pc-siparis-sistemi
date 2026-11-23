@@ -166,5 +166,105 @@ class AdapterTestleri(unittest.TestCase):
         self.assertTrue(self.adapter.yanit_uret("s", Konusma("x"), []).reddedildi)
 
 
+try:
+    from google.genai import errors as genai_errors, types as genai_types
+    GENAI_VAR = True
+except ImportError:
+    GENAI_VAR = False
+
+
+class SahteGeminiIstemcisi:
+    """google.genai.Client yerine geçen sahte Adaptee; gelen isteği kaydeder."""
+
+    def __init__(self, yanit=None, hata=None):
+        self.istek = None
+        self._yanit, self._hata = yanit, hata
+        self.models = SimpleNamespace(generate_content=self._uret)
+
+    def _uret(self, **kwargs):
+        self.istek = kwargs
+        if self._hata:
+            raise self._hata
+        return self._yanit
+
+
+@unittest.skipUnless(GENAI_VAR, "google-genai kurulu değil")
+class GeminiAdapterTestleri(unittest.TestCase):
+    def setUp(self):
+        from pc_siparis.ai import GeminiAdapter
+
+        t = genai_types
+        self.model_icerigi = t.Content(role="model", parts=[
+            t.Part(text="Kataloğa bakıyorum."),
+            t.Part(function_call=t.FunctionCall(id="fc_1", name="katalog_listele", args={})),
+        ])
+        self.yanit = t.GenerateContentResponse(candidates=[t.Candidate(content=self.model_icerigi, finish_reason=t.FinishReason.STOP)])
+        self.istemci = SahteGeminiIstemcisi(self.yanit)
+        self.adapter = GeminiAdapter(istemci=self.istemci, model="gemini-test")
+        self.arac = AracTanimi("katalog_listele", "listeler", {"type": "object", "properties": {}, "required": [], "additionalProperties": False})
+
+    def test_sdk_yaniti_bagimsiz_tiplere_cevrilir(self):
+        yanit = self.adapter.yanit_uret("sistem", Konusma("merhaba"), [self.arac])
+        self.assertEqual(yanit.metin, "Kataloğa bakıyorum.")
+        self.assertEqual(yanit.arac_cagrilari, [AracCagrisi("fc_1", "katalog_listele", {})])
+        self.assertFalse(yanit.reddedildi)
+
+    def test_istek_sdk_formatina_cevrilir(self):
+        self.adapter.yanit_uret("sistem talimatı", Konusma("merhaba"), [self.arac])
+        istek = self.istemci.istek
+        self.assertEqual(istek["model"], "gemini-test")
+        self.assertEqual(istek["contents"][0].parts[0].text, "merhaba")
+        ayar = istek["config"]
+        self.assertEqual(ayar.system_instruction, "sistem talimatı")
+        self.assertEqual(ayar.tools[0].function_declarations[0].name, "katalog_listele")
+        self.assertTrue(ayar.automatic_function_calling.disable)
+
+    def test_gecmis_ham_icerikle_ve_arac_sonuclariyla_gonderilir(self):
+        from pc_siparis.ai.dil_modeli import AracSonucu
+
+        ilk = self.adapter.yanit_uret("s", Konusma("merhaba"), [self.arac])
+        konusma = Konusma("merhaba")
+        konusma.adimlar.append((ilk, [AracSonucu("fc_1", "{}")]))
+        self.adapter.yanit_uret("s", konusma, [self.arac])
+        icerikler = self.istemci.istek["contents"]
+        self.assertIs(icerikler[1], self.model_icerigi)  # thought signature'lar korunur
+        cevap = icerikler[2].parts[0].function_response
+        self.assertEqual((cevap.name, cevap.id), ("katalog_listele", "fc_1"))
+        self.assertEqual(cevap.response, {"result": "{}"})
+
+    def test_guvenlik_engeli_ret_olarak_isaretlenir(self):
+        self.yanit.candidates[0].finish_reason = genai_types.FinishReason.SAFETY
+        self.assertTrue(self.adapter.yanit_uret("s", Konusma("x"), []).reddedildi)
+
+    def test_kota_hatasi_dil_modeli_hatasina_cevrilir(self):
+        from pc_siparis.ai import DilModeliHatasi, GeminiAdapter
+
+        hata = genai_errors.ClientError(429, {"error": {"code": 429, "message": "quota", "status": "RESOURCE_EXHAUSTED"}})
+        adapter = GeminiAdapter(istemci=SahteGeminiIstemcisi(hata=hata), model="gemini-test")
+        with self.assertRaisesRegex(DilModeliHatasi, "İstek sınırı"):
+            adapter.yanit_uret("s", Konusma("x"), [])
+
+    def test_anahtar_varsa_gemini_secilir(self):
+        import os
+        from unittest import mock
+
+        from pc_siparis.ai import GeminiAdapter, varsayilan_dil_modeli
+
+        with mock.patch.dict(os.environ, {"GEMINI_API_KEY": "test-anahtari"}, clear=True):
+            model, aciklama = varsayilan_dil_modeli()
+        self.assertIsInstance(model, GeminiAdapter)
+        self.assertIn("Gemini", aciklama)
+
+    def test_anahtar_yoksa_cevrimdisi_model_secilir(self):
+        import os
+        from unittest import mock
+
+        from pc_siparis.ai import varsayilan_dil_modeli
+
+        with mock.patch.dict(os.environ, {}, clear=True):
+            model, _ = varsayilan_dil_modeli()
+        self.assertIsInstance(model, CevrimdisiDilModeli)
+
+
 if __name__ == "__main__":
     unittest.main()
