@@ -38,7 +38,7 @@ içine alın, örneğin `cd "C:\Users\...\tasarim_kalipları"`.
 
 Tüm komutlar proje kök klasöründe (`main.py` dosyasının bulunduğu yerde) çalıştırılmalıdır.
 
-### 3.1 Etkileşimli uygulama
+### 3.1 Konsol arayüzü
 
 ```bash
 python main.py
@@ -56,7 +56,27 @@ python main.py
 Her adımda köşeli parantez içindeki kod yazılıp Enter'a basılır. Geçersiz bir seçim
 yapılırsa uygulama aynı soruyu tekrar sorar.
 
-### 3.2 Etkileşimsiz örnek senaryo
+### 3.2 Pencere arayüzü
+
+```bash
+python gui.py
+```
+
+Pencere dört bölümden oluşur:
+
+1. **Ürün Seçimi:** "Temel Kasa" veya "Hazır Paket" sekmesinden seçim yapılıp **Seç ve Üret**'e
+   basılır. "AI Asistanı" sekmesinde ihtiyaç ve bütçe yazılıp **Öneri Al**'a basılır.
+2. **Sistem ve Ek Donanım:** Seçilen sistemin parçaları ve liste fiyatı görünür; **+** düğmeleriyle
+   donanım eklenir, **Ek donanımları kaldır** ile temel sisteme dönülür.
+3. **Ödeme:** Havale veya kredi kartı (taksit sayısıyla) seçilir; ödenecek tutar anında güncellenir.
+   **Siparişi Tamamla** ile sipariş verilir.
+4. **Sipariş Takibi:** Aşama göstergesi, müşteri bildirimleri ve teknik servis paneli sipariş
+   ilerledikçe güncellenir.
+
+Üstteki "Müşteri adı" alanına yazılan ad bildirimlerde kullanılır. Hata ve bilgi mesajları
+pencerenin altındaki durum çubuğunda gösterilir.
+
+### 3.3 Etkileşimsiz örnek senaryo
 
 Hiç girdi istemeden iki örnek siparişi baştan sona çalıştırır:
 
@@ -102,7 +122,7 @@ python -m unittest discover -s tests -v
 Beklenen son satırlar:
 
 ```
-Ran 42 tests in ...s
+Ran 49 tests in ...s
 
 OK
 ```
@@ -112,7 +132,8 @@ Testler ağ erişimi veya API anahtarı gerektirmez. Ayrıntılar için [TEST.md
 ## 6. Proje Yapısı
 
 ```
-main.py              Etkileşimli uygulamanın giriş noktası
+main.py              Konsol uygulamasının giriş noktası
+gui.py               Pencere uygulamasının giriş noktası
 demo.py              Etkileşimsiz örnek senaryo
 requirements.txt     İsteğe bağlı bağımlılık (anthropic)
 pc_siparis/          Uygulama kodu (her kalıp ayrı modülde)
@@ -127,6 +148,7 @@ docs/                Kalıp Haritası, tasarım raporu, UML diyagramları, bu do
 |---|---|---|
 | `can't open file 'main.py'` | Terminal proje klasöründe değil. | `cd` ile `main.py`'nin bulunduğu klasöre geçin. |
 | `'python' is not recognized` | Python PATH'te değil. | `py main.py` kullanın veya Python'u PATH seçeneğiyle yeniden kurun. |
+| `ModuleNotFoundError: No module named 'tkinter'` | Python tkinter olmadan kurulmuş (bazı Linux dağıtımları). | Windows/macOS'ta Python'u python.org'dan yeniden kurun; Linux'ta `sudo apt install python3-tk`. |
 | `SyntaxError` veya `TypeError: unsupported operand type(s) for \|` | Python sürümü 3.10'dan eski. | Python 3.10+ kurun. |
 | Türkçe karakterler bozuk görünüyor | Konsol kod sayfası UTF-8 değil. | Önce `chcp 65001` çalıştırın. |
 | AI seçeneğinde "çevrimdışı model kullanılıyor" uyarısı | `ANTHROPIC_API_KEY` tanımlı değil. | Bölüm 4'teki adımları uygulayın. |

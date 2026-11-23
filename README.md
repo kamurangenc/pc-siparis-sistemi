@@ -36,26 +36,39 @@ pc_siparis/
   takip.py         SiparisTakipMerkezi, ISiparisGozlemcisi, paneller
   siparis.py       SiparisIsleyici (Strategy Context)
   konsol.py        Etkileşimli konsol arayüzü
+  pencere.py       Pencere arayüzü (tkinter) ve pencere gözlemcileri
   ai/
     dil_modeli.py  IDilModeli, ClaudeAdapter, CevrimdisiDilModeli
     araclar.py     IArac (Command), araçlar, AracYurutucu
     guardrail.py   Girdi ve çıktı denetimi
     asistan.py     DonanimOneriAsistani (Tool Use döngüsü)
 tests/             unittest testleri
-main.py            Etkileşimli uygulama
+main.py            Konsol uygulaması
+gui.py             Pencere uygulaması
 demo.py            Etkileşimsiz örnek senaryo
 ```
 
 ## Kurulum ve Çalıştırma
 
-Temel uygulama yalnızca Python standart kütüphanesini kullanır:
+Uygulama yalnızca Python standart kütüphanesini kullanır (pencere arayüzü için tkinter,
+Python ile birlikte gelir).
+
+**Pencere arayüzü:**
+
+```bash
+python gui.py
+```
+
+![Pencere arayüzü](docs/ekran_goruntusu.png)
+
+**Konsol arayüzü:**
 
 ```bash
 python main.py
 ```
 
-Menüden kendi sisteminizi toplayabilir, hazır paket seçebilir veya AI asistanından öneri
-alabilirsiniz. Etkileşimsiz örnek senaryo için:
+Her iki arayüzde de kendi sisteminizi toplayabilir, hazır paket seçebilir veya AI
+asistanından öneri alabilirsiniz. Etkileşimsiz örnek senaryo için:
 
 ```bash
 python demo.py

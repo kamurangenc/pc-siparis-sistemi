@@ -23,7 +23,7 @@ aynı kodu çalıştırır.
 | ConcreteCreator | `StandartSistemFabrikasi`, `HazirPaketFabrikasi` | `pc_siparis/fabrika.py` |
 | Product | `IBilgisayar` | `pc_siparis/urunler.py` |
 | ConcreteProduct | `OfisKasasi`, `OyunKasasi` (+ dekore edilmiş paketler) | `pc_siparis/urunler.py` |
-| İstemci | `KonsolUygulamasi._fabrikadan_al` | `pc_siparis/konsol.py` |
+| İstemci | `KonsolUygulamasi._fabrikadan_al`, `PencereUygulamasi._fabrika_sekmesi` | `pc_siparis/konsol.py`, `pc_siparis/pencere.py` |
 
 ```mermaid
 classDiagram
@@ -149,6 +149,7 @@ servis panelini vb. doğrudan çağırırsa her yeni bildirim kanalı sipariş k
 | Subject | `SiparisTakipMerkezi` | `pc_siparis/takip.py` |
 | Observer | `ISiparisGozlemcisi` | `pc_siparis/takip.py` |
 | ConcreteObserver | `MusteriBildirimPaneli`, `TeknikServisPaneli` | `pc_siparis/takip.py` |
+| ConcreteObserver (pencere) | `PencereMusteriPaneli`, `PencereTeknikServisPaneli`, `SiparisDurumGostergesi` | `pc_siparis/pencere.py` |
 
 ```mermaid
 classDiagram
@@ -193,6 +194,9 @@ sequenceDiagram
     T->>M: guncelle(...)
     T->>TS: guncelle(...)
 ```
+
+**Kalıbın kazancı (pencere arayüzü):** Pencere arayüzü eklenirken sipariş akışı ve takip merkezi
+hiç değiştirilmedi; yalnızca üç yeni ConcreteObserver yazılıp `abone_ekle` ile kaydedildi.
 
 **Alternatif:** Sipariş akışında panellerin doğrudan çağrılması; veya bir kütüphanenin hazır olay sistemi (müfredat gereği sayılmaz).
 **Bedel:** Bildirim sırası garanti değildir; çok sayıda gözlemcide performans ve hata ayıklama zorlaşır; abonelikten çıkılmazsa bellek tutulur.

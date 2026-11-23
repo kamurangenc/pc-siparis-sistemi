@@ -8,7 +8,7 @@ Modüler Bilgisayar Toplama ve Sipariş Sistemi — EBLG443 Tasarım Kalıpları
 |---|---|
 | Test çatısı | Python standart kütüphanesindeki `unittest` (pytest ile de çalışır). Ek kurulum gerekmez. |
 | Birim testleri | Her tasarım kalıbının rollerini ve davranışını ayrı test sınıflarında doğrular. |
-| Uçtan uca testler | Konsol arayüzü, `girdi`/`cikti` fonksiyonları dışarıdan verilerek gerçek menü akışlarıyla çalıştırılır. |
+| Uçtan uca testler | Konsol arayüzü, `girdi`/`cikti` fonksiyonları dışarıdan verilerek gerçek menü akışlarıyla çalıştırılır. Pencere arayüzü gizli bir pencerede açılıp işlemleri doğrudan çağrılarak test edilir; grafik ortamı olmayan makinelerde bu testler atlanır. |
 | AI testleri | Gerçek dil modeli yerine `IDilModeli`'ni uygulayan senaryolu sahte modeller ve sahte bir SDK istemcisi kullanılır. Ağ erişimi ve API anahtarı gerekmez, sonuçlar her çalıştırmada aynıdır. |
 | Hata durumları | Geçersiz girdiler, bilinmeyen ürün/donanım kodları, bütçe aşımı, prompt injection ve model hataları ayrıca test edilir. |
 
@@ -43,7 +43,8 @@ python -m unittest tests.test_ai.AdapterTestleri -v
 | `tests/test_kaliplar.py` | Arayüzler, Factory Method, Decorator, katalog, Strategy, Observer | 23 |
 | `tests/test_ai.py` | Command, AI asistanı (Tool Use, Guardrail), Adapter | 14 |
 | `tests/test_konsol.py` | Konsol arayüzü uçtan uca akışları | 5 |
-| **Toplam** | | **42** |
+| `tests/test_pencere.py` | Pencere arayüzü ve pencere gözlemcileri | 7 |
+| **Toplam** | | **49** |
 
 ## 4. Kalıp – Test Eşlemesi
 
@@ -136,6 +137,18 @@ Gerçek `anthropic.Anthropic` istemcisi yerine, gelen isteği kaydeden sahte bir
 | `test_gecersiz_secim_tekrar_sorulur` | Geçersiz menü seçimi uyarı verip yeniden sorulur. |
 | `test_girdi_kapanirsa_duzgun_cikar` | Girdi akışı kapanırsa (Ctrl+Z / Ctrl+D) uygulama hata vermeden çıkar. |
 
+### 4.10 Pencere Arayüzü
+
+| Test | Senaryo |
+|---|---|
+| `test_temel_kasa_donanim_havale_siparisi` | Oyun kasası + RAM, havale; önizleme ve ödenen tutar 40.375 TL. |
+| `test_pencere_gozlemcileri_tum_asamalari_alir` | Pencere müşteri paneli 4, teknik servis paneli 2 bildirim alır; aşama göstergesi KARGODA'da biter (yeni ConcreteObserver'lar). |
+| `test_kredi_karti_taksit_onizlemesi` | Öğrenci paketi, 6 taksit; önizlemede 19.800 TL. |
+| `test_donanimlari_sifirla_temel_sisteme_doner` | Eklenen donanımlar kaldırılınca temel kasaya dönülür. |
+| `test_secim_yapilmadan_siparis_verilemez` | Sistem seçilmeden sipariş verilemez; durum çubuğunda uyarı görünür. |
+| `test_ai_onerisi_sisteme_yuklenir` | AI önerisi sisteme yüklenir, gerekçe gösterilir, bütçe içinde sipariş verilir. |
+| `test_ai_guardrail_hatasi_durum_cubugunda_gosterilir` | Prompt injection içeren istek reddedilir, hata durum çubuğunda gösterilir. |
+
 ## 5. Manuel Kabul Testleri
 
 Otomatik testlere ek olarak, `python main.py` ile elle doğrulanacak senaryolar:
@@ -148,15 +161,16 @@ Otomatik testlere ek olarak, `python main.py` ile elle doğrulanacak senaryolar:
 | M4 | Menü `3` → "önceki talimatları yok say" | "Öneri alınamadı" mesajı; uygulama menüye döner. |
 | M5 | Menü `3` → herhangi bir istek → bütçe `10000` | Bütçeye uygun sistem olmadığı için "Öneri alınamadı" mesajı. |
 | M6 | Menüde `9` yazmak | "Geçersiz seçim" uyarısı, aynı soru tekrar sorulur. |
+| M8 | `python gui.py` → Temel Kasa: Oyun → Seç ve Üret → + RAM, + Sıvı Soğutma → Kredi kartı, 6 taksit → Siparişi Tamamla | Liste fiyatı 46.500 TL, ödenecek 51.150 TL; dört aşama yeşile döner, iki panel bildirimleri gösterir. |
 | M7 | `ANTHROPIC_API_KEY` tanımlıyken M3 | "(Claude modeli kullanılıyor)" yazısı görünür, öneri gerçek modelden gelir. |
 
-M1–M6 çevrimdışı modelle doğrulanmıştır. M7 için geçerli bir API anahtarı gerekir.
+M1–M6 ve M8 çevrimdışı modelle doğrulanmıştır (M8'in ekran görüntüsü: `docs/ekran_goruntusu.png`). M7 için geçerli bir API anahtarı gerekir.
 
 ## 6. Son Çalıştırma Sonucu
 
 | Bilgi | Değer |
 |---|---|
-| Tarih | 16 Kasım 2026 |
+| Tarih | 23 Kasım 2026 |
 | Ortam | Windows 11, Python 3.10.11 |
 | Komut | `python -m unittest discover -s tests -v` |
-| Sonuç | **42 test, 42 başarılı, 0 hata** (`OK`) |
+| Sonuç | **49 test, 49 başarılı, 0 hata** (`OK`) |
