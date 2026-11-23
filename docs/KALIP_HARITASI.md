@@ -149,7 +149,7 @@ servis panelini vb. doğrudan çağırırsa her yeni bildirim kanalı sipariş k
 | Subject | `SiparisTakipMerkezi` | `pc_siparis/takip.py` |
 | Observer | `ISiparisGozlemcisi` | `pc_siparis/takip.py` |
 | ConcreteObserver | `MusteriBildirimPaneli`, `TeknikServisPaneli` | `pc_siparis/takip.py` |
-| ConcreteObserver (pencere) | `PencereMusteriPaneli`, `PencereTeknikServisPaneli`, `SiparisDurumGostergesi` | `pc_siparis/pencere.py` |
+| ConcreteObserver (pencere) | `SiraliGosterimGozlemcisi` (takip merkezine abone olur, bildirimleri aşağıdaki panellere aralıklarla iletir), `PencereMusteriPaneli`, `PencereTeknikServisPaneli`, `SiparisDurumGostergesi` | `pc_siparis/pencere.py` |
 
 ```mermaid
 classDiagram
@@ -196,7 +196,8 @@ sequenceDiagram
 ```
 
 **Kalıbın kazancı (pencere arayüzü):** Pencere arayüzü eklenirken sipariş akışı ve takip merkezi
-hiç değiştirilmedi; yalnızca üç yeni ConcreteObserver yazılıp `abone_ekle` ile kaydedildi.
+hiç değiştirilmedi; yalnızca yeni ConcreteObserver'lar yazılıp `abone_ekle` ile kaydedildi. Aşamaların
+ekranda sırayla canlandırılması da yalnızca yeni bir gözlemciyle (`SiraliGosterimGozlemcisi`) yapıldı.
 
 **Alternatif:** Sipariş akışında panellerin doğrudan çağrılması; veya bir kütüphanenin hazır olay sistemi (müfredat gereği sayılmaz).
 **Bedel:** Bildirim sırası garanti değildir; çok sayıda gözlemcide performans ve hata ayıklama zorlaşır; abonelikten çıkılmazsa bellek tutulur.

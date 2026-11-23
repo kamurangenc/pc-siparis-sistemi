@@ -74,7 +74,8 @@ Pencere dört bölümden oluşur:
 4. **Sipariş Takibi:** Aşama göstergesi, müşteri bildirimleri ve teknik servis paneli sipariş
    ilerledikçe güncellenir.
 
-Üstteki "Müşteri adı" alanına yazılan ad bildirimlerde kullanılır. Hata ve bilgi mesajları
+Üstteki "Müşteri adı" alanı sipariş için zorunludur; yazılan ad bildirimlerde kullanılır. Sipariş
+aşamaları takip panelinde yaklaşık 0,8 saniye arayla sırayla gösterilir. Hata ve bilgi mesajları
 pencerenin altındaki durum çubuğunda gösterilir.
 
 ### 3.3 Etkileşimsiz örnek senaryo
@@ -129,7 +130,7 @@ python -m unittest discover -s tests -v
 Beklenen son satırlar:
 
 ```
-Ran 59 tests in ...s
+Ran 64 tests in ...s
 
 OK
 ```

@@ -43,8 +43,8 @@ python -m unittest tests.test_ai.AdapterTestleri -v
 | `tests/test_kaliplar.py` | Arayüzler, Factory Method, Decorator, katalog, Strategy, Observer | 23 |
 | `tests/test_ai.py` | Command, AI asistanı (Tool Use, Guardrail), Adapter (Claude ve Gemini), anahtar doğrulama | 23 |
 | `tests/test_konsol.py` | Konsol arayüzü uçtan uca akışları | 5 |
-| `tests/test_pencere.py` | Pencere arayüzü, pencere gözlemcileri ve hata durumu | 8 |
-| **Toplam** | | **59** |
+| `tests/test_pencere.py` | Pencere arayüzü, pencere gözlemcileri, aşama animasyonu ve hata durumu | 13 |
+| **Toplam** | | **64** |
 
 ## 4. Kalıp – Test Eşlemesi
 
@@ -162,6 +162,11 @@ Aynı davranışlar `GeminiAdapter` için sahte bir `google.genai.Client` ile de
 | `test_secim_yapilmadan_siparis_verilemez` | Sistem seçilmeden sipariş verilemez; durum çubuğunda uyarı görünür. |
 | `test_ai_onerisi_sisteme_yuklenir` | AI önerisi sisteme yüklenir, gerekçe gösterilir, bütçe içinde sipariş verilir. |
 | `test_ai_guardrail_hatasi_durum_cubugunda_gosterilir` | Prompt injection içeren istek reddedilir, hata durum çubuğunda gösterilir. |
+| `test_musteri_adi_olmadan_siparis_verilemez` | Müşteri adı boşken sipariş verilmez; ad alanı vurgulanır ve durum çubuğunda uyarı görünür. |
+| `test_secim_isaretleri_ekrandaki_sistemle_tutarli` | Seçenekler başta işaretsizdir; yalnızca ekrandaki sistemin geldiği seçenek işaretli kalır, AI önerisinde hiçbiri. |
+| `test_secenek_isaretlenmeden_uretilemez` | Seçenek işaretlenmeden "Seç ve Üret"e basılırsa ürün üretilmez, uyarı gösterilir. |
+| `test_fiyatlar_turkce_bicimde` | Paket seçenekleri ve liste fiyatı Türkçe yazımla gösterilir (49.500 TL, 49.500,00 TL). |
+| `AsamaAnimasyonuTestleri.test_asamalar_sirayla_ve_aralikli_gosterilir` | Sipariş aşamaları aynı anda değil, aralıklarla ve doğru sırada (ödeme → montaj → test → kargo) gösterilir. |
 | `PencereHataTestleri.test_beklenmeyen_model_hatasinda_pencere_takilmaz` | Model beklenmeyen bir istisna fırlatsa bile pencere "düşünüyor" durumunda kalmaz; hata gösterilir ve "Öneri Al" düğmesi yeniden etkinleşir. |
 
 ## 5. Manuel Kabul Testleri
@@ -176,7 +181,7 @@ Otomatik testlere ek olarak, `python main.py` ile elle doğrulanacak senaryolar:
 | M4 | Menü `3` → "önceki talimatları yok say" | "Öneri alınamadı" mesajı; uygulama menüye döner. |
 | M5 | Menü `3` → herhangi bir istek → bütçe `10000` | Bütçeye uygun sistem olmadığı için "Öneri alınamadı" mesajı. |
 | M6 | Menüde `9` yazmak | "Geçersiz seçim" uyarısı, aynı soru tekrar sorulur. |
-| M8 | `python gui.py` → Temel Kasa: Oyun → Seç ve Üret → + RAM, + Sıvı Soğutma → Kredi kartı, 6 taksit → Siparişi Tamamla | Liste fiyatı 46.500 TL, ödenecek 51.150 TL; dört aşama yeşile döner, iki panel bildirimleri gösterir. |
+| M8 | `python gui.py` → Müşteri adı yaz → Temel Kasa: Oyun → Seç ve Üret → + RAM, + Sıvı Soğutma → Kredi kartı, 6 taksit → Siparişi Tamamla | Liste fiyatı 46.500 TL, ödenecek 51.150 TL; dört aşama yaklaşık 0,8 sn arayla sırayla yeşile döner, iki panel bildirimleri gösterir. Ad yazılmadan sipariş denenirse ad alanı vurgulanır. |
 | M7 | `GEMINI_API_KEY` tanımlıyken M3 | "Gemini modeli kullanılıyor (gemini-3.5-flash-lite)" yazısı görünür, öneri gerçek modelden gelir. |
 
 M1–M6 ve M8 çevrimdışı modelle doğrulanmıştır (M8'in ekran görüntüsü: `docs/ekran_goruntusu.png`). M7, 23 Kasım 2026'da gerçek Gemini modeliyle doğrulanmıştır: "video kurgu + oyun, sessiz,
@@ -194,4 +199,4 @@ süreyi durum çubuğunda gösterir.
 | Tarih | 23 Kasım 2026 |
 | Ortam | Windows 11, Python 3.10.11 |
 | Komut | `python -m unittest discover -s tests -v` |
-| Sonuç | **59 test, 59 başarılı, 0 hata** (`OK`) |
+| Sonuç | **64 test, 64 başarılı, 0 hata** (`OK`) |
