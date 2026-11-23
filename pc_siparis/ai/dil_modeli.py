@@ -197,3 +197,18 @@ class CevrimdisiDilModeli(IDilModeli):
     def _cagri(cagri_id: str, ad: str, girdi: dict[str, Any]) -> ModelYaniti:
         cagri = AracCagrisi(cagri_id, ad, girdi)
         return ModelYaniti(metin="", arac_cagrilari=[cagri], ham_icerik=[cagri])
+
+
+def varsayilan_dil_modeli() -> tuple[IDilModeli, str]:
+    """Ortama göre modeli seçer: anahtar varsa Claude, yoksa çevrimdışı model.
+
+    Konsol ve pencere arayüzü aynı seçimi kullanır; dönen metin kullanıcıya gösterilir.
+    """
+    import os
+
+    if os.environ.get("ANTHROPIC_API_KEY"):
+        try:
+            return ClaudeAdapter(), "Claude modeli kullanılıyor"
+        except ImportError:
+            return CevrimdisiDilModeli(), "anthropic paketi kurulu değil (pip install -r requirements.txt) — çevrimdışı model kullanılıyor"
+    return CevrimdisiDilModeli(), "ANTHROPIC_API_KEY tanımlı değil — çevrimdışı kural tabanlı model kullanılıyor"

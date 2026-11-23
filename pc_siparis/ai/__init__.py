@@ -4,9 +4,9 @@ GoF kalıpları : Adapter (dil_modeli.py), Command (araclar.py)
 LLM kalıpları : Tool Use (araclar.py + asistan.py), Guardrail (guardrail.py)
 """
 from .asistan import DonanimOneriAsistani, OneriHatasi, OneriSonucu
-from .dil_modeli import CevrimdisiDilModeli, ClaudeAdapter, DilModeliHatasi, IDilModeli
+from .dil_modeli import CevrimdisiDilModeli, ClaudeAdapter, DilModeliHatasi, IDilModeli, varsayilan_dil_modeli
 
 __all__ = [
     "DonanimOneriAsistani", "OneriHatasi", "OneriSonucu",
-    "IDilModeli", "ClaudeAdapter", "CevrimdisiDilModeli", "DilModeliHatasi",
+    "IDilModeli", "ClaudeAdapter", "CevrimdisiDilModeli", "DilModeliHatasi", "varsayilan_dil_modeli",
 ]

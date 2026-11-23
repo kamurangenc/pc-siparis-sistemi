@@ -9,10 +9,9 @@ Arayüz kalıpların istemcisidir; somut sınıfları değil soyutlamaları kull
 """
 from __future__ import annotations
 
-import os
 from typing import Callable
 
-from .ai import CevrimdisiDilModeli, DilModeliHatasi, DonanimOneriAsistani, IDilModeli, OneriHatasi
+from .ai import DilModeliHatasi, DonanimOneriAsistani, IDilModeli, OneriHatasi, varsayilan_dil_modeli
 from .fabrika import BilgisayarFabrikasi, HazirPaketFabrikasi, StandartSistemFabrikasi
 from .katalog import DonanimKatalogu
 from .odeme import HavaleOdemeStratejisi, IOdemeStratejisi, KrediKartiOdemeStratejisi
@@ -112,19 +111,9 @@ class KonsolUygulamasi:
         return oneri.bilgisayar if onay == "1" else None
 
     def _dil_modeli_sec(self) -> IDilModeli:
-        if self._dil_modeli is not None:
-            return self._dil_modeli
-        if os.environ.get("ANTHROPIC_API_KEY"):
-            try:
-                from .ai import ClaudeAdapter
-
-                self._dil_modeli = ClaudeAdapter()
-                self._cikti("(Claude modeli kullanılıyor)")
-                return self._dil_modeli
-            except ImportError:
-                self._cikti("(anthropic paketi kurulu değil: pip install -r requirements.txt)")
-        self._cikti("(ANTHROPIC_API_KEY tanımlı değil — çevrimdışı kural tabanlı model kullanılıyor)")
-        self._dil_modeli = CevrimdisiDilModeli()
+        if self._dil_modeli is None:
+            self._dil_modeli, aciklama = varsayilan_dil_modeli()
+            self._cikti(f"({aciklama})")
         return self._dil_modeli
 
     def _odeme_sec(self) -> IOdemeStratejisi:
