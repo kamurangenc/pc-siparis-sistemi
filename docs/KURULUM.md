@@ -129,7 +129,7 @@ python -m unittest discover -s tests -v
 Beklenen son satırlar:
 
 ```
-Ran 56 tests in ...s
+Ran 59 tests in ...s
 
 OK
 ```
@@ -160,6 +160,7 @@ docs/                Kalıp Haritası, tasarım raporu, UML diyagramları, bu do
 | Türkçe karakterler bozuk görünüyor | Konsol kod sayfası UTF-8 değil. | Önce `chcp 65001` çalıştırın. |
 | AI seçeneğinde "çevrimdışı model kullanılıyor" uyarısı | `GEMINI_API_KEY` tanımlı değil. | Bölüm 4'teki adımları uygulayın. |
 | "google-genai paketi kurulu değil" uyarısı | Anahtar tanımlı ama paket kurulu değil. | `pip install -r requirements.txt` |
+| "GEMINI_API_KEY geçersiz görünüyor" | Anahtar yerine örnek metin (ör. `anahtarınız`) yazılmış. | Tırnak içine AI Studio'dan kopyaladığınız gerçek anahtarı yazın. |
 | "Gemini API anahtarı geçersiz" | Anahtar hatalı yazılmış veya iptal edilmiş. | Anahtarı AI Studio'dan kontrol edip yeniden tanımlayın. |
 | "İstek sınırı aşıldı" | Ücretsiz kotanın dakikalık sınırı aşıldı. | Bir dakika bekleyip tekrar deneyin. |
 | "Gemini sunucu hatası (504)" | Model zamanında cevap vermedi. | Tekrar deneyin veya `GEMINI_MODEL` ile başka bir model seçin. |

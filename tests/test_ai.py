@@ -250,7 +250,7 @@ class GeminiAdapterTestleri(unittest.TestCase):
 
         from pc_siparis.ai import GeminiAdapter, varsayilan_dil_modeli
 
-        with mock.patch.dict(os.environ, {"GEMINI_API_KEY": "test-anahtari"}, clear=True):
+        with mock.patch.dict(os.environ, {"GEMINI_API_KEY": "AQ.sahte-test-anahtari-0123456789"}, clear=True):
             model, aciklama = varsayilan_dil_modeli()
         self.assertIsInstance(model, GeminiAdapter)
         self.assertIn("Gemini", aciklama)
@@ -264,6 +264,29 @@ class GeminiAdapterTestleri(unittest.TestCase):
         with mock.patch.dict(os.environ, {}, clear=True):
             model, _ = varsayilan_dil_modeli()
         self.assertIsInstance(model, CevrimdisiDilModeli)
+
+
+class AnahtarDogrulamaTestleri(unittest.TestCase):
+    def test_ornek_metin_anahtar_olarak_yazilirsa_cevrimdisi_modele_duser(self):
+        import os
+        from unittest import mock
+
+        from pc_siparis.ai import varsayilan_dil_modeli
+
+        for anahtar in ("anahtarınız", "kısa", "AQ.abc def ghi jkl mno pqr"):
+            with self.subTest(anahtar=anahtar), mock.patch.dict(os.environ, {"GEMINI_API_KEY": anahtar}, clear=True):
+                model, aciklama = varsayilan_dil_modeli()
+                self.assertIsInstance(model, CevrimdisiDilModeli)
+                self.assertIn("geçersiz", aciklama)
+
+    @unittest.skipUnless(GENAI_VAR, "google-genai kurulu değil")
+    def test_kodlama_hatasi_dil_modeli_hatasina_cevrilir(self):
+        from pc_siparis.ai import DilModeliHatasi, GeminiAdapter
+
+        hata = UnicodeEncodeError("ascii", "anahtarınız", 7, 8, "ordinal not in range(128)")
+        adapter = GeminiAdapter(istemci=SahteGeminiIstemcisi(hata=hata), model="gemini-test")
+        with self.assertRaisesRegex(DilModeliHatasi, "geçersiz karakter"):
+            adapter.yanit_uret("s", Konusma("x"), [])
 
 
 if __name__ == "__main__":

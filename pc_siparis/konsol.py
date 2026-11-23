@@ -105,6 +105,9 @@ class KonsolUygulamasi:
         except (OneriHatasi, DilModeliHatasi) as e:
             self._cikti(f"Öneri alınamadı: {e}")
             return None
+        except Exception as e:  # beklenmeyen bir hata uygulamayı kapatmasın
+            self._cikti(f"Öneri alınamadı (beklenmeyen hata: {type(e).__name__}): {e}")
+            return None
         self._sistemi_goster(oneri.bilgisayar)
         self._cikti(f"Gerekçe: {oneri.gerekce}")
         onay = self._secim_yap("Bu sistemi sipariş etmek ister misiniz?", {"1": "Evet", "2": "Hayır, menüye dön"})

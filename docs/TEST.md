@@ -41,10 +41,10 @@ python -m unittest tests.test_ai.AdapterTestleri -v
 | Dosya | Kapsam | Test sayısı |
 |---|---|---|
 | `tests/test_kaliplar.py` | Arayüzler, Factory Method, Decorator, katalog, Strategy, Observer | 23 |
-| `tests/test_ai.py` | Command, AI asistanı (Tool Use, Guardrail), Adapter (Claude ve Gemini) | 21 |
+| `tests/test_ai.py` | Command, AI asistanı (Tool Use, Guardrail), Adapter (Claude ve Gemini), anahtar doğrulama | 23 |
 | `tests/test_konsol.py` | Konsol arayüzü uçtan uca akışları | 5 |
-| `tests/test_pencere.py` | Pencere arayüzü ve pencere gözlemcileri | 7 |
-| **Toplam** | | **56** |
+| `tests/test_pencere.py` | Pencere arayüzü, pencere gözlemcileri ve hata durumu | 8 |
+| **Toplam** | | **59** |
 
 ## 4. Kalıp – Test Eşlemesi
 
@@ -138,6 +138,8 @@ Aynı davranışlar `GeminiAdapter` için sahte bir `google.genai.Client` ile de
 | `test_kota_hatasi_dil_modeli_hatasina_cevrilir` | 429 kota hatası kullanıcıya anlaşılır bir `DilModeliHatasi` olarak döner. |
 | `test_anahtar_varsa_gemini_secilir` | `GEMINI_API_KEY` tanımlıyken varsayılan model `GeminiAdapter`'dır. |
 | `test_anahtar_yoksa_cevrimdisi_model_secilir` | Hiçbir anahtar yokken çevrimdışı model seçilir. |
+| `AnahtarDogrulamaTestleri.test_ornek_metin_anahtar_olarak_yazilirsa_cevrimdisi_modele_duser` | Anahtar yerine örnek metin ("anahtarınız"), çok kısa ya da boşluklu bir değer yazılırsa açıklayıcı mesajla çevrimdışı modele geçilir. |
+| `AnahtarDogrulamaTestleri.test_kodlama_hatasi_dil_modeli_hatasina_cevrilir` | HTTP başlığına yazılamayan anahtar karakteri `DilModeliHatasi`'na çevrilir; uygulama çökmez. |
 
 ### 4.9 Konsol Arayüzü (Uçtan Uca)
 
@@ -160,6 +162,7 @@ Aynı davranışlar `GeminiAdapter` için sahte bir `google.genai.Client` ile de
 | `test_secim_yapilmadan_siparis_verilemez` | Sistem seçilmeden sipariş verilemez; durum çubuğunda uyarı görünür. |
 | `test_ai_onerisi_sisteme_yuklenir` | AI önerisi sisteme yüklenir, gerekçe gösterilir, bütçe içinde sipariş verilir. |
 | `test_ai_guardrail_hatasi_durum_cubugunda_gosterilir` | Prompt injection içeren istek reddedilir, hata durum çubuğunda gösterilir. |
+| `PencereHataTestleri.test_beklenmeyen_model_hatasinda_pencere_takilmaz` | Model beklenmeyen bir istisna fırlatsa bile pencere "düşünüyor" durumunda kalmaz; hata gösterilir ve "Öneri Al" düğmesi yeniden etkinleşir. |
 
 ## 5. Manuel Kabul Testleri
 
@@ -188,4 +191,4 @@ isteğine ofis kasası (15.000 TL) önerilmiştir; her öneri yaklaşık 5–7 s
 | Tarih | 23 Kasım 2026 |
 | Ortam | Windows 11, Python 3.10.11 |
 | Komut | `python -m unittest discover -s tests -v` |
-| Sonuç | **56 test, 56 başarılı, 0 hata** (`OK`) |
+| Sonuç | **59 test, 59 başarılı, 0 hata** (`OK`) |

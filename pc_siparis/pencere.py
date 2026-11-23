@@ -323,6 +323,8 @@ class PencereUygulamasi:
                 self._kuyruk.put(("tamam", asistan.oner(istek, butce)))
             except (OneriHatasi, DilModeliHatasi) as e:
                 self._kuyruk.put(("hata", str(e)))
+            except Exception as e:  # pencere hiçbir hatada "düşünüyor" durumunda takılı kalmamalı
+                self._kuyruk.put(("hata", f"Beklenmeyen hata ({type(e).__name__}): {e}"))
 
         if self._senkron:
             calis()

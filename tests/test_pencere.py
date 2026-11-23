@@ -77,5 +77,27 @@ class PencereTestleri(unittest.TestCase):
         self.assertIn("Öneri alınamadı", self.uyg.durum_var.get())
 
 
+@unittest.skipUnless(GRAFIK_VAR, "Grafik ortamı yok")
+class PencereHataTestleri(unittest.TestCase):
+    def test_beklenmeyen_model_hatasinda_pencere_takilmaz(self):
+        from pc_siparis.ai import IDilModeli
+        from pc_siparis.pencere import PencereUygulamasi
+
+        class BozukModel(IDilModeli):
+            def yanit_uret(self, sistem, konusma, araclar):
+                raise RuntimeError("beklenmeyen")
+
+        kok = tk.Tk()
+        kok.withdraw()
+        try:
+            uyg = PencereUygulamasi(kok, dil_modeli=BozukModel(), senkron=True)
+            uyg.ai_oneri_al("oyun", None)
+            self.assertIn("Öneri alınamadı", uyg.durum_var.get())
+            self.assertIn("RuntimeError", uyg.durum_var.get())
+            self.assertEqual(str(uyg._ai_dugmesi.cget("state")), "normal")
+        finally:
+            kok.destroy()
+
+
 if __name__ == "__main__":
     unittest.main()

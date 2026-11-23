@@ -247,6 +247,8 @@ class GeminiAdapter(IDilModeli):
             raise DilModeliHatasi(f"Gemini API hatası ({e.code}): {e.message}") from e
         except errors.APIError as e:
             raise DilModeliHatasi(f"Gemini sunucu hatası ({e.code}): {e.message}") from e
+        except UnicodeEncodeError as e:
+            raise DilModeliHatasi("API anahtarı geçersiz karakter içeriyor; gerçek Gemini anahtarınızı yazın.") from e
         except OSError as e:
             raise DilModeliHatasi("Ağ bağlantısı kurulamadı.") from e
         return self._yanittan_cevir(yanit)
@@ -307,6 +309,11 @@ class GeminiAdapter(IDilModeli):
         )
 
 
+def _anahtar_gecerli_gorunuyor(anahtar: str) -> bool:
+    """API anahtarları ASCII'dir ve boşluk içermez; aksi hâlde HTTP başlığına yazılamaz."""
+    return anahtar.isascii() and len(anahtar) >= 20 and not any(c.isspace() for c in anahtar)
+
+
 def varsayilan_dil_modeli() -> tuple[IDilModeli, str]:
     """Ortama göre modeli seçer: Gemini anahtarı → Gemini, Anthropic anahtarı → Claude,
     hiçbiri yoksa çevrimdışı model.
@@ -315,7 +322,13 @@ def varsayilan_dil_modeli() -> tuple[IDilModeli, str]:
     """
     import os
 
-    if os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY"):
+    gemini_anahtari = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY")
+    if gemini_anahtari:
+        if not _anahtar_gecerli_gorunuyor(gemini_anahtari):
+            return CevrimdisiDilModeli(), (
+                "GEMINI_API_KEY geçersiz görünüyor (boşluk veya Türkçe karakter içeriyor). "
+                "Örnekteki metni değil, AI Studio'dan aldığınız gerçek anahtarı yazın — çevrimdışı model kullanılıyor"
+            )
         try:
             model = GeminiAdapter()
             return model, f"Gemini modeli kullanılıyor ({model.model_adi})"
