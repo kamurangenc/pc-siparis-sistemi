@@ -81,7 +81,7 @@ pip install -r requirements.txt
 ```
 
 Ardından Google AI Studio'dan aldığınız anahtarı `GEMINI_API_KEY` ortam değişkeni olarak
-tanımlayın (PowerShell: `$env:GEMINI_API_KEY = "..."`). Varsayılan model `gemini-3.6-flash`
+tanımlayın (PowerShell: `$env:GEMINI_API_KEY = "..."`). Varsayılan model `gemini-3.5-flash-lite`
 (`GEMINI_MODEL` ile değiştirilebilir). Alternatif olarak `ANTHROPIC_API_KEY` tanımlanırsa
 Claude kullanılır. Hiçbir anahtar yoksa asistan, aynı arayüzü uygulayan çevrimdışı kural
 tabanlı modelle çalışır. Ayrıntılar: [docs/KURULUM.md](docs/KURULUM.md).

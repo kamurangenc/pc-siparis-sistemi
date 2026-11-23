@@ -207,10 +207,12 @@ class GeminiAdapter(IDilModeli):
     eklenerek model sağlayıcısı değiştirilmiştir.
     """
 
-    VARSAYILAN_MODEL = "gemini-3.6-flash"
+    VARSAYILAN_MODEL = "gemini-3.5-flash-lite"  # ölçüm: tam öneri 2–3 sn (3.6-flash: 77–100 sn)
     ZAMAN_ASIMI_MS = 60_000
+    # Katalogdan seçim basit bir görev; yüksek düşünme seviyesi her adımı ~45 sn'ye çıkarıyordu.
+    VARSAYILAN_DUSUNME = "LOW"
 
-    def __init__(self, istemci: Any | None = None, model: str | None = None) -> None:
+    def __init__(self, istemci: Any | None = None, model: str | None = None, dusunme_seviyesi: str | None = None) -> None:
         import os
 
         if istemci is None:
@@ -221,6 +223,7 @@ class GeminiAdapter(IDilModeli):
             istemci = genai.Client(http_options=types.HttpOptions(timeout=self.ZAMAN_ASIMI_MS))
         self._istemci = istemci  # Adaptee
         self._model = model or os.environ.get("GEMINI_MODEL") or self.VARSAYILAN_MODEL
+        self._dusunme = (dusunme_seviyesi or os.environ.get("GEMINI_DUSUNME") or self.VARSAYILAN_DUSUNME).upper()
 
     @property
     def model_adi(self) -> str:
@@ -234,6 +237,7 @@ class GeminiAdapter(IDilModeli):
             tools=[types.Tool(function_declarations=[self._araca_cevir(a) for a in araclar])] if araclar else None,
             # Araç döngüsünü asistan yönetir; SDK'nın otomatik araç çağırması kapatılır.
             automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
+            thinking_config=types.ThinkingConfig(thinking_level=getattr(types.ThinkingLevel, self._dusunme)),
         )
         try:
             yanit = self._istemci.models.generate_content(

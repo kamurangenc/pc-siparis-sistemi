@@ -177,11 +177,14 @@ Otomatik testlere ek olarak, `python main.py` ile elle doğrulanacak senaryolar:
 | M5 | Menü `3` → herhangi bir istek → bütçe `10000` | Bütçeye uygun sistem olmadığı için "Öneri alınamadı" mesajı. |
 | M6 | Menüde `9` yazmak | "Geçersiz seçim" uyarısı, aynı soru tekrar sorulur. |
 | M8 | `python gui.py` → Temel Kasa: Oyun → Seç ve Üret → + RAM, + Sıvı Soğutma → Kredi kartı, 6 taksit → Siparişi Tamamla | Liste fiyatı 46.500 TL, ödenecek 51.150 TL; dört aşama yeşile döner, iki panel bildirimleri gösterir. |
-| M7 | `GEMINI_API_KEY` tanımlıyken M3 | "Gemini modeli kullanılıyor (gemini-3.6-flash)" yazısı görünür, öneri gerçek modelden gelir. |
+| M7 | `GEMINI_API_KEY` tanımlıyken M3 | "Gemini modeli kullanılıyor (gemini-3.5-flash-lite)" yazısı görünür, öneri gerçek modelden gelir. |
 
 M1–M6 ve M8 çevrimdışı modelle doğrulanmıştır (M8'in ekran görüntüsü: `docs/ekran_goruntusu.png`). M7, 23 Kasım 2026'da gerçek Gemini modeliyle doğrulanmıştır: "video kurgu + oyun, sessiz,
 48.000 TL" isteğine oyun kasası + RAM + sıvı soğutma (46.500 TL), "ofis işleri, 20.000 TL"
-isteğine ofis kasası (15.000 TL) önerilmiştir; her öneri yaklaşık 5–7 saniye sürmüştür.
+isteğine ofis kasası (15.000 TL) önerilmiştir. Model karşılaştırması (aynı istek, 3 araç adımı): `gemini-3.6-flash`
+77–100 sn, `gemini-3.5-flash` 42 sn, `gemini-3.5-flash-lite` 2–3 sn sürmüş; öneri kalitesi benzer
+olduğu için varsayılan model `gemini-3.5-flash-lite` seçilmiştir. Pencere arayüzü beklerken geçen
+süreyi durum çubuğunda gösterir.
 Ücretsiz kotanın dakikalık sınırı aşıldığında uygulama "İstek sınırı aşıldı" mesajı vermiştir.
 
 ## 6. Son Çalıştırma Sonucu

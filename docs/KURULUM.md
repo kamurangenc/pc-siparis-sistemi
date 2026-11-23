@@ -92,7 +92,7 @@ tanımlıysa **Claude**, hiçbiri yoksa **çevrimdışı model** kullanılır. S
 
 API anahtarı olmadan menüdeki `[3]` seçeneği **çevrimdışı kural tabanlı modelle** çalışır
 ve ekranda bunu belirten bir uyarı gösterilir. Gerçek Gemini modelini (varsayılan
-`gemini-3.6-flash`) kullanmak için:
+`gemini-3.5-flash-lite`) kullanmak için:
 
 1. Bağımlılığı kurun:
 
@@ -112,10 +112,10 @@ ve ekranda bunu belirten bir uyarı gösterilir. Gerçek Gemini modelini (varsay
    | macOS / Linux | `export GEMINI_API_KEY="anahtarınız"` |
 
    Farklı bir Gemini modeli için isteğe bağlı olarak `GEMINI_MODEL` tanımlanabilir
-   (ör. `gemini-3.5-flash-lite`). Claude kullanmak için aynı şekilde `ANTHROPIC_API_KEY` tanımlanır.
+   (ör. `gemini-3.5-flash`). Claude kullanmak için aynı şekilde `ANTHROPIC_API_KEY` tanımlanır.
 
 4. Uygulamayı başlatın (`python gui.py` veya `python main.py`) ve AI asistanını kullanın.
-   Ekranda "Gemini modeli kullanılıyor (gemini-3.6-flash)" yazısı görünmelidir.
+   Ekranda "Gemini modeli kullanılıyor (gemini-3.5-flash-lite)" yazısı görünmelidir.
 
 > Anahtarı koda, README'ye veya Git deposuna yazmayın. Ortam değişkeni yalnızca o terminal
 > penceresi açık kaldığı sürece geçerlidir.

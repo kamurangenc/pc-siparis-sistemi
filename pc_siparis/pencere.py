@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import queue
 import threading
+import time
 import tkinter as tk
 from tkinter import ttk
 from typing import Callable
@@ -202,10 +203,14 @@ class PencereUygulamasi:
                                       command=self._ai_dugmesine_basildi)
         self._ai_dugmesi.pack(anchor="w", pady=10)
         self.gerekce_var = tk.StringVar(value="")
-        ttk.Label(sekme, textvariable=self.gerekce_var, wraplength=330, foreground="#444").pack(anchor="w")
+        gerekce = ttk.Label(sekme, textvariable=self.gerekce_var, wraplength=300, foreground="#444")
+        gerekce.pack(anchor="w", fill="x")
         self.model_var = tk.StringVar(value="Model, ilk öneride seçilir.")
-        ttk.Label(sekme, textvariable=self.model_var, wraplength=330, foreground="#777",
-                  font=("Segoe UI", 9, "italic")).pack(anchor="w", side="bottom")
+        model = ttk.Label(sekme, textvariable=self.model_var, wraplength=300, foreground="#777",
+                          font=("Segoe UI", 9, "italic"))
+        model.pack(anchor="w", side="bottom", fill="x")
+        # Metinler sütun genişliğine göre satır kaydırır; pencere daraltılsa da kesilmez.
+        sekme.bind("<Configure>", lambda e: [et.configure(wraplength=max(e.width - 24, 150)) for et in (gerekce, model)])
         return sekme
 
     def _sistem_sutunu(self, ebeveyn) -> ttk.Frame:
@@ -316,6 +321,8 @@ class PencereUygulamasi:
             self.model_var.set(aciklama)
         asistan = DonanimOneriAsistani(self._dil_modeli, self._fabrikalar["standart"], self._katalog)
         self._ai_dugmesi.configure(state="disabled")
+        self.gerekce_var.set("")
+        self._ai_baslangic = time.monotonic()
         self._durum("Asistan düşünüyor...")
 
         def calis() -> None:
@@ -345,16 +352,20 @@ class PencereUygulamasi:
         try:
             tur, veri = self._kuyruk.get_nowait()
         except queue.Empty:
-            self.kok.after(100, self._kuyrugu_isle)
+            # Bekleme süresi gösterilir; kullanıcı pencerenin donmadığını görür.
+            gecen = int(time.monotonic() - self._ai_baslangic)
+            self._durum(f"Asistan düşünüyor... {gecen} sn (model katalogu inceliyor, fiyatları hesaplıyor)")
+            self.kok.after(250, self._kuyrugu_isle)
             return
         self._ai_dugmesi.configure(state="normal")
+        sure = time.monotonic() - self._ai_baslangic
         if tur == "hata":
             self.gerekce_var.set("")
             self._durum(f"Öneri alınamadı: {veri}", hata=True)
             return
         self._sistemi_ayarla(veri.bilgisayar, temel=True)
         self.gerekce_var.set(f"Gerekçe: {veri.gerekce}")
-        self._durum(f"Asistan önerisi hazır ({veri.adim_sayisi} adım). İsterseniz donanım ekleyip sipariş verin.")
+        self._durum(f"Asistan önerisi hazır ({veri.adim_sayisi} adım, {sure:.1f} sn). İsterseniz donanım ekleyip sipariş verin.")
 
     def _sistemi_ayarla(self, bilgisayar: IBilgisayar, temel: bool = False) -> None:
         if temel:
