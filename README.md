@@ -14,7 +14,7 @@ ilgili panellere bildiren ve müşteriye AI destekli donanım önerisi sunan bir
 | Decorator | Yapısal | `pc_siparis/dekoratorler.py` | Donanım kombinasyonlarında sınıf patlaması |
 | Strategy | Davranışsal | `pc_siparis/odeme.py`, `pc_siparis/siparis.py` | Ödeme yöntemleri için if/else zinciri |
 | Observer | Davranışsal | `pc_siparis/takip.py` | Sipariş akışının bildirim modüllerine bağımlılığı |
-| Adapter | Yapısal | `pc_siparis/ai/dil_modeli.py` | Asistanın LLM SDK'sına bağımlılığı, anahtarsız test edilememesi |
+| Adapter | Yapısal | `pc_siparis/ai/dil_modeli.py` | Asistanın LLM SDK'sına bağımlılığı; Gemini ve Claude aynı arayüzle, anahtarsız test edilebilir |
 | Command | Davranışsal | `pc_siparis/ai/araclar.py` | Modelin araç isteklerinin if/else ile karşılanması |
 | Tool Use, Guardrail | LLM | `pc_siparis/ai/` | Modelin fiyat/parça uydurması, bütçe dışı öneri, prompt injection |
 
@@ -38,7 +38,7 @@ pc_siparis/
   konsol.py        Etkileşimli konsol arayüzü
   pencere.py       Pencere arayüzü (tkinter) ve pencere gözlemcileri
   ai/
-    dil_modeli.py  IDilModeli, ClaudeAdapter, CevrimdisiDilModeli
+    dil_modeli.py  IDilModeli, GeminiAdapter, ClaudeAdapter, CevrimdisiDilModeli
     araclar.py     IArac (Command), araçlar, AracYurutucu
     guardrail.py   Girdi ve çıktı denetimi
     asistan.py     DonanimOneriAsistani (Tool Use döngüsü)
@@ -80,9 +80,11 @@ python demo.py
 pip install -r requirements.txt
 ```
 
-Ardından `ANTHROPIC_API_KEY` ortam değişkenini kendi API anahtarınızla tanımlayın
-(PowerShell: `$env:ANTHROPIC_API_KEY = "..."`). Anahtar tanımlı değilse asistan,
-aynı arayüzü uygulayan çevrimdışı kural tabanlı modelle çalışır. Model: `claude-opus-5-5`.
+Ardından Google AI Studio'dan aldığınız anahtarı `GEMINI_API_KEY` ortam değişkeni olarak
+tanımlayın (PowerShell: `$env:GEMINI_API_KEY = "..."`). Varsayılan model `gemini-3.6-flash`
+(`GEMINI_MODEL` ile değiştirilebilir). Alternatif olarak `ANTHROPIC_API_KEY` tanımlanırsa
+Claude kullanılır. Hiçbir anahtar yoksa asistan, aynı arayüzü uygulayan çevrimdışı kural
+tabanlı modelle çalışır. Ayrıntılar: [docs/KURULUM.md](docs/KURULUM.md).
 
 ## Testler
 
@@ -101,9 +103,9 @@ python -m unittest discover -s tests -v
 - **Yeni ödeme yöntemi:** `IOdemeStratejisi`'ni uygula.
 - **Yeni bildirim kanalı:** `ISiparisGozlemcisi`'ni uygula, `abone_ekle(...)` ile kaydet.
 - **Yeni AI aracı:** `IArac`'ı uygula, `AracYurutucu`'ya ekle.
-- **Başka bir LLM:** `IDilModeli`'ni uygulayan yeni bir adapter yaz.
+- **Başka bir LLM:** `IDilModeli`'ni uygulayan yeni bir adapter yaz (Gemini desteği bu şekilde, asistana dokunmadan eklendi).
 
 ## Kaynaklar ve Beyan
 
-- Harici kütüphane: [anthropic](https://pypi.org/project/anthropic/) (yalnızca AI asistanı, isteğe bağlı).
+- Harici kütüphaneler (yalnızca AI asistanı, isteğe bağlı): [google-genai](https://pypi.org/project/google-genai/), [anthropic](https://pypi.org/project/anthropic/).
 - Geliştirme sürecinde yapay zekâ kod asistanından (Claude Code) yararlanılmıştır.

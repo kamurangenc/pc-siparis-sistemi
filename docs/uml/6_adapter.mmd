@@ -10,11 +10,24 @@ classDiagram
         -_araca_cevir(arac)
         -_yanittan_cevir(yanit)
     }
+    class GeminiAdapter {
+        -_istemci: genai.Client
+        +yanit_uret(...) ModelYaniti
+        -_mesajlara_cevir(konusma)
+        -_araca_cevir(arac)
+        -_yanittan_cevir(yanit)
+    }
+    class genai_Client {
+        <<Adaptee>>
+        +models.generate_content(...)
+    }
     class Anthropic {
         <<Adaptee>>
         +beta.messages.create(...)
     }
+    IDilModeli <|.. GeminiAdapter
     IDilModeli <|.. ClaudeAdapter
     IDilModeli <|.. CevrimdisiDilModeli
+    GeminiAdapter o--> genai_Client : uyarlar
     ClaudeAdapter o--> Anthropic : uyarlar
     DonanimOneriAsistani o--> IDilModeli

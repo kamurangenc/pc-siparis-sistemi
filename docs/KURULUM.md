@@ -8,8 +8,9 @@ Modüler Bilgisayar Toplama ve Sipariş Sistemi — EBLG443 Tasarım Kalıpları
 |---|---|---|
 | Python | 3.10 veya üzeri | Zorunlu. `abc`, `dataclasses`, `X \| None` tip sözdizimi kullanılır. |
 | Git | herhangi bir güncel sürüm | Depoyu klonlamak için. |
-| `anthropic` paketi | 2.8 veya üzeri | **İsteğe bağlı.** Yalnızca AI asistanını gerçek Claude modeliyle kullanmak için. |
-| Anthropic API anahtarı | — | **İsteğe bağlı.** Tanımlı değilse asistan çevrimdışı modelle çalışır. |
+| `google-genai` paketi | 2.33 veya üzeri | **İsteğe bağlı.** AI asistanını gerçek Gemini modeliyle kullanmak için. |
+| Gemini API anahtarı | — | **İsteğe bağlı.** Tanımlı değilse asistan çevrimdışı modelle çalışır. |
+| `anthropic` paketi ve anahtarı | 2.8 veya üzeri | **İsteğe bağlı alternatif.** Gemini yerine Claude kullanmak için. |
 
 Temel uygulama ve tüm testler yalnızca Python standart kütüphanesiyle çalışır; başka bir
 paket kurmak gerekmez.
@@ -86,9 +87,12 @@ python demo.py
 
 ## 4. AI Asistanını Gerçek Modelle Kullanma (İsteğe Bağlı)
 
+Model seçimi otomatiktir: `GEMINI_API_KEY` tanımlıysa **Gemini**, değilse `ANTHROPIC_API_KEY`
+tanımlıysa **Claude**, hiçbiri yoksa **çevrimdışı model** kullanılır. Seçilen model ekranda yazılır.
+
 API anahtarı olmadan menüdeki `[3]` seçeneği **çevrimdışı kural tabanlı modelle** çalışır
-ve ekranda bunu belirten bir uyarı gösterilir. Gerçek Claude modelini (`claude-opus-5-5`)
-kullanmak için:
+ve ekranda bunu belirten bir uyarı gösterilir. Gerçek Gemini modelini (varsayılan
+`gemini-3.6-flash`) kullanmak için:
 
 1. Bağımlılığı kurun:
 
@@ -96,19 +100,22 @@ kullanmak için:
    pip install -r requirements.txt
    ```
 
-2. [Anthropic Console](https://console.anthropic.com/) üzerinden bir API anahtarı oluşturun.
-   API kullanımı ücretlidir.
+2. [Google AI Studio](https://aistudio.google.com/) üzerinden bir API anahtarı oluşturun.
+   Ücretsiz kotada dakikalık istek sınırı vardır; aşılırsa uygulama "İstek sınırı aşıldı" der.
 
 3. Anahtarı **aynı terminal penceresinde** ortam değişkeni olarak tanımlayın:
 
    | Terminal | Komut |
    |---|---|
-   | PowerShell | `$env:ANTHROPIC_API_KEY = "anahtarınız"` |
-   | Komut İstemi (cmd) | `set ANTHROPIC_API_KEY=anahtarınız` |
-   | macOS / Linux | `export ANTHROPIC_API_KEY="anahtarınız"` |
+   | PowerShell | `$env:GEMINI_API_KEY = "anahtarınız"` |
+   | Komut İstemi (cmd) | `set GEMINI_API_KEY=anahtarınız` |
+   | macOS / Linux | `export GEMINI_API_KEY="anahtarınız"` |
 
-4. Uygulamayı başlatın (`python main.py`) ve menüden `[3]`'ü seçin. Ekranda
-   "(Claude modeli kullanılıyor)" yazısı görünmelidir.
+   Farklı bir Gemini modeli için isteğe bağlı olarak `GEMINI_MODEL` tanımlanabilir
+   (ör. `gemini-3.5-flash-lite`). Claude kullanmak için aynı şekilde `ANTHROPIC_API_KEY` tanımlanır.
+
+4. Uygulamayı başlatın (`python gui.py` veya `python main.py`) ve AI asistanını kullanın.
+   Ekranda "Gemini modeli kullanılıyor (gemini-3.6-flash)" yazısı görünmelidir.
 
 > Anahtarı koda, README'ye veya Git deposuna yazmayın. Ortam değişkeni yalnızca o terminal
 > penceresi açık kaldığı sürece geçerlidir.
@@ -122,7 +129,7 @@ python -m unittest discover -s tests -v
 Beklenen son satırlar:
 
 ```
-Ran 49 tests in ...s
+Ran 56 tests in ...s
 
 OK
 ```
@@ -151,7 +158,8 @@ docs/                Kalıp Haritası, tasarım raporu, UML diyagramları, bu do
 | `ModuleNotFoundError: No module named 'tkinter'` | Python tkinter olmadan kurulmuş (bazı Linux dağıtımları). | Windows/macOS'ta Python'u python.org'dan yeniden kurun; Linux'ta `sudo apt install python3-tk`. |
 | `SyntaxError` veya `TypeError: unsupported operand type(s) for \|` | Python sürümü 3.10'dan eski. | Python 3.10+ kurun. |
 | Türkçe karakterler bozuk görünüyor | Konsol kod sayfası UTF-8 değil. | Önce `chcp 65001` çalıştırın. |
-| AI seçeneğinde "çevrimdışı model kullanılıyor" uyarısı | `ANTHROPIC_API_KEY` tanımlı değil. | Bölüm 4'teki adımları uygulayın. |
-| "anthropic paketi kurulu değil" uyarısı | Anahtar tanımlı ama paket kurulu değil. | `pip install -r requirements.txt` |
-| "API anahtarı geçersiz veya tanımlı değil" | Anahtar hatalı yazılmış veya iptal edilmiş. | Anahtarı Console'dan kontrol edip yeniden tanımlayın. |
-| "İstek sınırı aşıldı" | Kısa sürede çok fazla istek gönderildi. | Bir süre bekleyip tekrar deneyin. |
+| AI seçeneğinde "çevrimdışı model kullanılıyor" uyarısı | `GEMINI_API_KEY` tanımlı değil. | Bölüm 4'teki adımları uygulayın. |
+| "google-genai paketi kurulu değil" uyarısı | Anahtar tanımlı ama paket kurulu değil. | `pip install -r requirements.txt` |
+| "Gemini API anahtarı geçersiz" | Anahtar hatalı yazılmış veya iptal edilmiş. | Anahtarı AI Studio'dan kontrol edip yeniden tanımlayın. |
+| "İstek sınırı aşıldı" | Ücretsiz kotanın dakikalık sınırı aşıldı. | Bir dakika bekleyip tekrar deneyin. |
+| "Gemini sunucu hatası (504)" | Model zamanında cevap vermedi. | Tekrar deneyin veya `GEMINI_MODEL` ile başka bir model seçin. |

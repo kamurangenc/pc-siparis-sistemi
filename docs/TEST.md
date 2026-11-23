@@ -41,10 +41,10 @@ python -m unittest tests.test_ai.AdapterTestleri -v
 | Dosya | Kapsam | Test sayısı |
 |---|---|---|
 | `tests/test_kaliplar.py` | Arayüzler, Factory Method, Decorator, katalog, Strategy, Observer | 23 |
-| `tests/test_ai.py` | Command, AI asistanı (Tool Use, Guardrail), Adapter | 14 |
+| `tests/test_ai.py` | Command, AI asistanı (Tool Use, Guardrail), Adapter (Claude ve Gemini) | 21 |
 | `tests/test_konsol.py` | Konsol arayüzü uçtan uca akışları | 5 |
 | `tests/test_pencere.py` | Pencere arayüzü ve pencere gözlemcileri | 7 |
-| **Toplam** | | **49** |
+| **Toplam** | | **56** |
 
 ## 4. Kalıp – Test Eşlemesi
 
@@ -127,6 +127,18 @@ Gerçek `anthropic.Anthropic` istemcisi yerine, gelen isteği kaydeden sahte bir
 | `test_gecmis_ham_icerikle_ve_arac_sonuclariyla_gonderilir` | Önceki model yanıtı (düşünce blokları dahil) değiştirilmeden geri gönderilir; araç sonuçları doğru `tool_use_id` ile eklenir. |
 | `test_ret_durumu_isaretlenir` | Modelin reddettiği istek `reddedildi` olarak işaretlenir. |
 
+Aynı davranışlar `GeminiAdapter` için sahte bir `google.genai.Client` ile de test edilir (`GeminiAdapterTestleri`):
+
+| Test | Doğruladığı davranış |
+|---|---|
+| `test_sdk_yaniti_bagimsiz_tiplere_cevrilir` | Gemini yanıtındaki metin ve `function_call` parçaları bağımsız tiplere çevrilir. |
+| `test_istek_sdk_formatina_cevrilir` | Sistem talimatı, araç bildirimleri ve otomatik araç çağırmanın kapalı olması doğru gönderilir. |
+| `test_gecmis_ham_icerikle_ve_arac_sonuclariyla_gonderilir` | Model içeriği (thought signature'lar dahil) aynen geri gönderilir; araç sonucu doğru ad ve kimlikle eklenir. |
+| `test_guvenlik_engeli_ret_olarak_isaretlenir` | Güvenlik nedeniyle kesilen yanıt `reddedildi` olarak işaretlenir. |
+| `test_kota_hatasi_dil_modeli_hatasina_cevrilir` | 429 kota hatası kullanıcıya anlaşılır bir `DilModeliHatasi` olarak döner. |
+| `test_anahtar_varsa_gemini_secilir` | `GEMINI_API_KEY` tanımlıyken varsayılan model `GeminiAdapter`'dır. |
+| `test_anahtar_yoksa_cevrimdisi_model_secilir` | Hiçbir anahtar yokken çevrimdışı model seçilir. |
+
 ### 4.9 Konsol Arayüzü (Uçtan Uca)
 
 | Test | Senaryo |
@@ -162,9 +174,12 @@ Otomatik testlere ek olarak, `python main.py` ile elle doğrulanacak senaryolar:
 | M5 | Menü `3` → herhangi bir istek → bütçe `10000` | Bütçeye uygun sistem olmadığı için "Öneri alınamadı" mesajı. |
 | M6 | Menüde `9` yazmak | "Geçersiz seçim" uyarısı, aynı soru tekrar sorulur. |
 | M8 | `python gui.py` → Temel Kasa: Oyun → Seç ve Üret → + RAM, + Sıvı Soğutma → Kredi kartı, 6 taksit → Siparişi Tamamla | Liste fiyatı 46.500 TL, ödenecek 51.150 TL; dört aşama yeşile döner, iki panel bildirimleri gösterir. |
-| M7 | `ANTHROPIC_API_KEY` tanımlıyken M3 | "(Claude modeli kullanılıyor)" yazısı görünür, öneri gerçek modelden gelir. |
+| M7 | `GEMINI_API_KEY` tanımlıyken M3 | "Gemini modeli kullanılıyor (gemini-3.6-flash)" yazısı görünür, öneri gerçek modelden gelir. |
 
-M1–M6 ve M8 çevrimdışı modelle doğrulanmıştır (M8'in ekran görüntüsü: `docs/ekran_goruntusu.png`). M7 için geçerli bir API anahtarı gerekir.
+M1–M6 ve M8 çevrimdışı modelle doğrulanmıştır (M8'in ekran görüntüsü: `docs/ekran_goruntusu.png`). M7, 23 Kasım 2026'da gerçek Gemini modeliyle doğrulanmıştır: "video kurgu + oyun, sessiz,
+48.000 TL" isteğine oyun kasası + RAM + sıvı soğutma (46.500 TL), "ofis işleri, 20.000 TL"
+isteğine ofis kasası (15.000 TL) önerilmiştir; her öneri yaklaşık 5–7 saniye sürmüştür.
+Ücretsiz kotanın dakikalık sınırı aşıldığında uygulama "İstek sınırı aşıldı" mesajı vermiştir.
 
 ## 6. Son Çalıştırma Sonucu
 
@@ -173,4 +188,4 @@ M1–M6 ve M8 çevrimdışı modelle doğrulanmıştır (M8'in ekran görüntüs
 | Tarih | 23 Kasım 2026 |
 | Ortam | Windows 11, Python 3.10.11 |
 | Komut | `python -m unittest discover -s tests -v` |
-| Sonuç | **49 test, 49 başarılı, 0 hata** (`OK`) |
+| Sonuç | **56 test, 56 başarılı, 0 hata** (`OK`) |

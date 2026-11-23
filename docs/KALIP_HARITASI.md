@@ -209,11 +209,15 @@ hiç değiştirilmedi; yalnızca üç yeni ConcreteObserver yazılıp `abone_ekl
 doğrudan bağlı olursa SDK değişikliğinde veya başka bir modele geçişte asistan kodu
 değişir; ayrıca API anahtarı olmadan çalıştırılamaz ve test edilemez.
 
+**Kalıbın kazancı:** Proje Claude ile başladı, sonra varsayılan model Gemini'ye çevrildi. Bu
+değişiklikte yalnızca `GeminiAdapter` eklendi ve model seçim fonksiyonu güncellendi;
+asistan, araçlar, guardrail'ler ve arayüzler hiç değişmedi.
+
 | Rol | Sınıf | Dosya |
 |---|---|---|
 | Target | `IDilModeli` | `pc_siparis/ai/dil_modeli.py` |
-| Adapter | `ClaudeAdapter` | `pc_siparis/ai/dil_modeli.py` |
-| Adaptee | `anthropic.Anthropic` (Anthropic Python SDK) | harici kütüphane |
+| Adapter | `GeminiAdapter` (varsayılan), `ClaudeAdapter` | `pc_siparis/ai/dil_modeli.py` |
+| Adaptee | `google.genai.Client` (Google Gen AI SDK), `anthropic.Anthropic` (Anthropic SDK) | harici kütüphaneler |
 | Client | `DonanimOneriAsistani` | `pc_siparis/ai/asistan.py` |
 | Target'ın alternatif uygulaması | `CevrimdisiDilModeli` (anahtarsız, kural tabanlı) | `pc_siparis/ai/dil_modeli.py` |
 
@@ -230,12 +234,25 @@ classDiagram
         -_araca_cevir(arac)
         -_yanittan_cevir(yanit)
     }
+    class GeminiAdapter {
+        -_istemci: genai.Client
+        +yanit_uret(...) ModelYaniti
+        -_mesajlara_cevir(konusma)
+        -_araca_cevir(arac)
+        -_yanittan_cevir(yanit)
+    }
+    class genai_Client {
+        <<Adaptee>>
+        +models.generate_content(...)
+    }
     class Anthropic {
         <<Adaptee>>
         +beta.messages.create(...)
     }
+    IDilModeli <|.. GeminiAdapter
     IDilModeli <|.. ClaudeAdapter
     IDilModeli <|.. CevrimdisiDilModeli
+    GeminiAdapter o--> genai_Client : uyarlar
     ClaudeAdapter o--> Anthropic : uyarlar
     DonanimOneriAsistani o--> IDilModeli
 ```
@@ -307,7 +324,7 @@ sequenceDiagram
     participant K as KonsolUygulamasi
     participant A as DonanimOneriAsistani
     participant G as GirdiDenetcisi / CiktiDenetcisi
-    participant M as IDilModeli (ClaudeAdapter)
+    participant M as IDilModeli (GeminiAdapter)
     participant Y as AracYurutucu
     participant F as Fabrika + Katalog
     K->>A: oner(istek, butce)
