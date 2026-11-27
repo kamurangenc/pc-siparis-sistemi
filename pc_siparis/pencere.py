@@ -159,6 +159,8 @@ class PencereUygulamasi:
     def _stil_kur(self) -> None:
         stil = ttk.Style(self.kok)
         stil.theme_use("clam")
+        # Tema değişikliği olayını hemen işle; pencere erken kapanırsa tkinter uyarı basmasın.
+        self.kok.update_idletasks()
         stil.configure(".", font=YAZI, background=RENK_ARKA)
         stil.configure("TLabelframe", background=RENK_ARKA)
         stil.configure("TLabelframe.Label", font=YAZI_KALIN, foreground=RENK_VURGU, background=RENK_ARKA)

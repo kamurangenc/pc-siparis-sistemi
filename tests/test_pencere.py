@@ -29,6 +29,7 @@ class PencereTestleri(unittest.TestCase):
         self.uyg.ad_var.set("Ayşe")
 
     def tearDown(self):
+        self.kok.update_idletasks()
         self.kok.destroy()
 
     def test_temel_kasa_donanim_havale_siparisi(self):
@@ -123,6 +124,7 @@ class PencereHataTestleri(unittest.TestCase):
             self.assertIn("RuntimeError", uyg.durum_var.get())
             self.assertEqual(str(uyg._ai_dugmesi.cget("state")), "normal")
         finally:
+            kok.update_idletasks()
             kok.destroy()
 
 
@@ -150,6 +152,7 @@ class AsamaAnimasyonuTestleri(unittest.TestCase):
             self.assertEqual(len(uyg.musteri_paneli.kayitlar), 4)
             self.assertEqual(gorulen, list(SiparisDurumu))
         finally:
+            kok.update_idletasks()
             kok.destroy()
 
 
